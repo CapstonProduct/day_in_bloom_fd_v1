@@ -1,0 +1,171 @@
+name: day_in_bloom_fd_v1
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.8
+  flutter_native_splash: ^2.4.4
+  go_router: 14.8.0
+  table_calendar: 3.1.3
+  flutter_localizations: 
+    sdk: flutter
+  intl: 0.19.0
+  youtube_player_flutter: 9.1.1
+  url_launcher: 6.3.1
+  http: 1.3.0
+
+flutter_native_splash:
+  android: true
+  ios: true
+  web: false
+  color: '#FFFFFF'
+  image: 'assets/logo.png'
+  ios_content_mode: scaleAspectFit
+  android_12:
+    image: assets/logo.png
+    fullscreen: true  
+  
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^5.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/logo.png
+    - assets/flower_phase/flower_phase0.png
+    - assets/flower_phase/flower_phase1.png
+    - assets/flower_phase/flower_phase2.png
+    - assets/flower_phase/flower_phase3.png
+    - assets/flower_phase/flower_phase4.png
+    - assets/flower_phase/clover_phase1.png
+    - assets/flower_phase/clover_phase2.png
+    - assets/flower_phase/clover_phase3.png
+    - assets/flower_phase/clover_phase4.png
+    - assets/home_icon/dumbell.png
+    - assets/home_icon/flower_icon.png
+    - assets/home_icon/green_youtube.png
+    - assets/home_icon/pillow.png
+    - assets/mission_icon/doctor.png
+    - assets/mission_icon/elderly.png
+    - assets/mission_icon/report.png
+    - assets/mission_icon/runner.png
+    - assets/mission_icon/recommendation.png    
+    - assets/setting_icon/account.png
+    - assets/setting_icon/alarm_set.png
+    - assets/setting_icon/alphabet.png
+    - assets/setting_icon/select_flower.png
+    - assets/setting_icon/logout.png
+    - assets/setting_icon/trashcan.png
+    - assets/report_icon/blue_pdf.png
+    - assets/report_icon/green_pdf.png
+    - assets/report_icon/family_talk.png
+    - assets/report_icon/doctor_talk.png
+    - assets/report_icon/headache.png
+    - assets/report_icon/report.png
+    - assets/report_icon/pillow.png
+    - assets/report_icon/dumbell.png
+    - assets/profile_icon/green_profile.png
+    - assets/profile_icon/red_profile.png
+    - assets/profile_icon/orange_profile.png
+    - assets/profile_icon/camera.png
+    - assets/flower_img/pink_flower.png
+    - assets/flower_img/top_right_leaf.png
+    - assets/qna_button_img/q1a1.png
+    - assets/qna_button_img/q1a2.png
+    - assets/qna_button_img/q1a3.png
+    - assets/qna_button_img/q1a4.png
+    - assets/qna_button_img/q2a1.png
+    - assets/qna_button_img/q2a2.png
+    - assets/qna_button_img/q2a3.png
+    - assets/qna_button_img/q2a4.png
+    - assets/qna_button_img/q3a1.png
+    - assets/qna_button_img/q3a2.png
+    - assets/qna_button_img/q4a1.png
+    - assets/qna_button_img/q4a2.png
+    - assets/qna_button_img/q4a3.png
+    - assets/qna_button_img/q4a4.png
+    - assets/qna_button_img/q5a1.png
+    - assets/qna_button_img/q5a2.png
+    - assets/qna_button_img/q5a3.png
+    - assets/qna_button_img/q5a4.png
+    - assets/qna_button_img/temporary_img.png
+    - assets/qna_content.json
+    - assets/qna_icon/health_qna.png
+    - assets/qna_icon/qna_report.png
+
+    - assets/remove_img/exercise_graph_ex.png
+    - assets/remove_img/sleep_graph_ex.png
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/to/resolution-aware-images
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/to/asset-from-package
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/to/font-from-package
