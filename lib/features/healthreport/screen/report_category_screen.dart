@@ -24,7 +24,9 @@ class ReportCategoryScreen extends StatelessWidget {
                 selectedDate,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 20),              
+              ElderlyInfo(),
+              const SizedBox(height: 16),
               GridView.builder(
                 shrinkWrap: true, 
                 physics: const NeverScrollableScrollPhysics(), 
@@ -52,6 +54,96 @@ class ReportCategoryScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class ElderlyInfo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
+
+    return Container(
+      padding: const EdgeInsets.all(4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                const CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.white,
+                  backgroundImage: AssetImage('assets/profile_icon/green_profile.png'),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(elderlyName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('1900-00-00'),
+                    Text('여성'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildInfoSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoSection() {
+    final List<Map<String, String>> infoItems = [
+      {'label': '주소', 'value': '서울특별시 광진구 어딘가'},
+      {'label': '전화번호', 'value': '010 - 1234 - 5678'},
+      {'label': '신장 / 체중', 'value': '201 cm / 102 kg'},
+      {'label': '아침시간', 'value': '09:00'},
+      {'label': '점심시간', 'value': '13:00'},
+      {'label': '저녁시간', 'value': '18:00'},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: List.generate(infoItems.length * 2 - 1, (index) {
+          if (index.isEven) {
+            final item = infoItems[index ~/ 2];
+            return _buildInfoItem(item['label']!, item['value']!);
+          } else {
+            return Divider(
+              color: Colors.grey.shade400,
+              height: 4.0,
+              thickness: 1.0,
+            );
+          }
+        }),
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: Colors.black54)),
+          Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+        ],
       ),
     );
   }
