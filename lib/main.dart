@@ -45,7 +45,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  static const List<String> _routes = ['/homeCalendar', '/homeCode', '/homeSetting'];
+  static const List<String> _routes = ['/homeElderlyList', '/homeCode', '/homeSetting'];
 
   void _onItemTapped(int index) {
     context.go(_routes[index]);

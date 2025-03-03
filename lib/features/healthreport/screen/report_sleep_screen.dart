@@ -8,10 +8,11 @@ class ReportSleepScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '날짜 없음';
+    final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
     const Color primaryColor = Color(0xFF41af7a); 
 
     return Scaffold(
-      appBar: const CustomAppBar(title: "건강 리포트"),
+      appBar: CustomAppBar(title: "$elderlyName 어르신 건강 리포트"),
       body: Column(
         children: [
           Padding(

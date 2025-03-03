@@ -9,9 +9,10 @@ class ReportCategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '날짜가 선택되지 않았습니다.';
+    final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
 
     return Scaffold(
-      appBar: const CustomAppBar(title: '건강 리포트', showBackButton: true),
+      appBar: CustomAppBar(title: '$elderlyName 어르신 건강 리포트', showBackButton: true),
       body: Padding(
         padding: const EdgeInsets.all(35.0),
         child: Column(
@@ -64,7 +65,8 @@ class ReportCategoryTile extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '';
-        context.go('${category.route}?date=$selectedDate'); 
+        final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
+        context.go('${category.route}?date=$selectedDate&name=$elderlyName'); 
       },
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -104,7 +106,8 @@ class ScoreReportCategoryTile extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '';
-        context.go('${category.route}?date=$selectedDate'); 
+        final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
+        context.go('${category.route}?date=$selectedDate&name=$elderlyName'); 
       },
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -186,10 +189,10 @@ class ReportCategory {
 }
 
 const List<ReportCategory> _categories = [
-  ReportCategory(title: '전체 종합 점수', imagePath: '', score: 88, route: '/homeCalendar/report/totalScore'),
-  ReportCategory(title: '스트레스 점수', imagePath: '', score: 52, color: Colors.red, route: '/homeCalendar/report/stressScore'),
-  ReportCategory(title: '운동', imagePath: 'assets/report_icon/dumbell.png', route: '/homeCalendar/report/exercise'),
-  ReportCategory(title: '수면', imagePath: 'assets/report_icon/pillow.png', route: '/homeCalendar/report/sleep'),
-  ReportCategory(title: '보호자님\n조언', imagePath: 'assets/report_icon/family_talk.png', route: '/homeCalendar/report/familyAdvice'),
-  ReportCategory(title: '의사 선생님\n조언', imagePath: 'assets/report_icon/doctor_talk.png', route: '/homeCalendar/report/doctorAdvice'),
+  ReportCategory(title: '전체 종합 점수', imagePath: '', score: 88, route: '/homeElderlyList/calendar/report/totalScore'),
+  ReportCategory(title: '스트레스 점수', imagePath: '', score: 52, color: Colors.red, route: '/homeElderlyList/calendar/report/stressScore'),
+  ReportCategory(title: '운동', imagePath: 'assets/report_icon/dumbell.png', route: '/homeElderlyList/calendar/report/exercise'),
+  ReportCategory(title: '수면', imagePath: 'assets/report_icon/pillow.png', route: '/homeElderlyList/calendar/report/sleep'),
+  ReportCategory(title: '보호자님\n조언', imagePath: 'assets/report_icon/family_talk.png', route: '/homeElderlyList/calendar/report/familyAdvice'),
+  ReportCategory(title: '의사 선생님\n조언', imagePath: 'assets/report_icon/doctor_talk.png', route: '/homeElderlyList/calendar/report/doctorAdvice'),
 ];

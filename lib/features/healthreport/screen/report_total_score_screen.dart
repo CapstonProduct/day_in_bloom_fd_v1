@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
+import 'package:go_router/go_router.dart';
 
 class ReportTotalScoreScreen extends StatelessWidget {
   const ReportTotalScoreScreen({super.key});
@@ -13,8 +14,10 @@ class ReportTotalScoreScreen extends StatelessWidget {
       {'label': '수면', 'value': '4시간'},
     ];
 
+    final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
+
     return Scaffold(
-      appBar: const CustomAppBar(title: "건강 리포트"),
+      appBar: CustomAppBar(title: "$elderlyName 어르신 건강 리포트"),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

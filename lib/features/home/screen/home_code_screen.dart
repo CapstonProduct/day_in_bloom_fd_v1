@@ -151,7 +151,6 @@ class HomeCodeScreen extends StatelessWidget {
               ),
             ),
           ),
-
         ],
       ),
     );
