@@ -1,4 +1,6 @@
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/calender_screen.dart';
+import 'package:day_in_bloom_fd_v1/features/healthreport/screen/modify_doctor_advice_screen.dart';
+import 'package:day_in_bloom_fd_v1/features/healthreport/screen/modify_family_advice_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/report_category_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/report_doctor_advice_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/report_exercise_screen.dart';
@@ -62,10 +64,22 @@ final GoRouter appRouter = GoRouter(
                     GoRoute(
                       path: 'familyAdvice',
                       pageBuilder: (context, state) => NoTransitionPage(child: ReportFamilyAdviceScreen()),
+                      routes:[
+                        GoRoute(
+                          path: 'modifyFamilyAdvice',
+                          pageBuilder: (context, state) => NoTransitionPage(child: ModifyFamilyAdviceScreen()),
+                        ),
+                      ],
                     ),
                     GoRoute(
                       path: 'doctorAdvice',
                       pageBuilder: (context, state) => NoTransitionPage(child: ReportDoctorAdviceScreen()),
+                      routes:[
+                        GoRoute(
+                          path: 'modifyDoctorAdvice',
+                          pageBuilder: (context, state) => NoTransitionPage(child: ModifyDoctorAdviceScreen()),
+                        ),
+                      ],                     
                     ),                                                       
                   ]
                 ),

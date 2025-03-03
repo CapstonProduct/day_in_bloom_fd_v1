@@ -78,6 +78,22 @@ class ReportFamilyAdviceScreen extends StatelessWidget {
                 ],
               ),
             ),
+            ElevatedButton(
+              onPressed: () {
+                context.go('/homeElderlyList/calendar/report/familyAdvice/modifyFamilyAdvice?date=$selectedDate&name=$elderlyName');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.green,
+                side: const BorderSide(color: Colors.green, width: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 15),
+              ),
+              child: const Text(
+                '조언 수정하기', 
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+              ),
+            ),            
           ],
         ),
       ),
