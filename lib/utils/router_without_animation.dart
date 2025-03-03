@@ -8,9 +8,6 @@ import 'package:day_in_bloom_fd_v1/features/healthreport/screen/report_total_sco
 import 'package:day_in_bloom_fd_v1/features/mission/screen/exvideo_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/mission/screen/mission_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/notification/screen/notification_list_screen.dart';
-import 'package:day_in_bloom_fd_v1/features/qna/screen/health_qna_screen.dart';
-import 'package:day_in_bloom_fd_v1/features/qna/screen/qna_result_detail_screen.dart';
-import 'package:day_in_bloom_fd_v1/features/qna/screen/qna_result_list_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/recommendation/screen/exercise_recommendation.dart';
 import 'package:day_in_bloom_fd_v1/features/recommendation/screen/sleep_recommendation.dart';
 import 'package:day_in_bloom_fd_v1/features/setting/screen/logout_cancel_screen.dart';
@@ -22,7 +19,7 @@ import 'package:day_in_bloom_fd_v1/main.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:day_in_bloom_fd_v1/features/home/screen/home_calender_screen.dart';
-import 'package:day_in_bloom_fd_v1/features/home/screen/home_qna_screen.dart';
+import 'package:day_in_bloom_fd_v1/features/home/screen/home_code_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/home/screen/home_setting_screen.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -90,23 +87,10 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
         GoRoute(
-          path: '/homeQna',
-          pageBuilder: (context, state) => NoTransitionPage(child: HomeQnaScreen()),
+          path: '/homeCode',
+          pageBuilder: (context, state) => NoTransitionPage(child: HomeCodeScreen()),
           routes: [
-            GoRoute(
-              path: 'healthQna',
-              pageBuilder: (context, state) => NoTransitionPage(child: HealthQnaScreen()),
-            ), 
-            GoRoute(
-              path: 'healthList',
-              pageBuilder: (context, state) => NoTransitionPage(child: QnaResultListScreen()),
-              routes: [
-                GoRoute(
-                  path: 'healthDetail',
-                  pageBuilder: (context, state) => NoTransitionPage(child: QnaResultDetailScreen()),
-                ),                    
-              ]
-            ),    
+   
           ]
         ),
         GoRoute(
