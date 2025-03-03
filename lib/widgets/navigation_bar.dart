@@ -18,8 +18,8 @@ class CustomNavigationBar extends StatelessWidget {
       child: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: [
-          _buildNavItem(Icons.fmd_good_outlined, '메인 화면', 0),
-          _buildNavItem(Icons.forum_outlined, '건강 문답', 1),
+          _buildNavItem(Icons.format_list_bulleted_sharp, '어르신 목록', 0),
+          _buildNavItem(Icons.add_box_outlined, '어르신 코드 등록', 1),
           _buildNavItem(Icons.settings_outlined, '설정', 2),
         ],
         currentIndex: selectedIndex,

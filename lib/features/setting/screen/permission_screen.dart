@@ -10,13 +10,8 @@ class PermissionScreen extends StatefulWidget {
 
 class _PermissionScreenState extends State<PermissionScreen> {
   final Map<String, bool> permissions = {
-    '식사 알림': true,
-    '운동 알림': true,
-    '아침 안부 알림': false,
-    '수면 시간 알림': false,
     '리포트 생성 알림': true,
-    '이상 징후 알림': true,
-    '조언 추가 알림': true,
+    '이상 징후 알림': false,
   };
 
   @override
