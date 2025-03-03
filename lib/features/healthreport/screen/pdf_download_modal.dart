@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 class PdfDownloadModal {
-  static void show(BuildContext context) {
-    showDialog(
+  static Future<bool?> show(BuildContext context) async {
+    return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -24,8 +25,7 @@ class PdfDownloadModal {
               children: [
                 TextButton(
                   onPressed: () {
-                    // PDF 다운로드 로직 추가
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(true); 
                   },
                   child: const Text(
                     '예',
@@ -34,13 +34,13 @@ class PdfDownloadModal {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(false);
                   },
                   child: const Text(
                     '아니요',
                     style: TextStyle(color: Colors.red),
                   ),
-                ),               
+                ),
               ],
             ),
           ],

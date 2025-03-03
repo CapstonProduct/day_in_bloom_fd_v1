@@ -1,3 +1,4 @@
+import 'package:day_in_bloom_fd_v1/features/healthreport/screen/pdf_doctor_code_modal.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/pdf_download_modal.dart';
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
@@ -15,16 +16,18 @@ class ReportCategoryScreen extends StatelessWidget {
       appBar: CustomAppBar(title: '$elderlyName 어르신 건강 리포트', showBackButton: true),
       body: Padding(
         padding: const EdgeInsets.all(35.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              selectedDate,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: GridView.builder(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                selectedDate,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              GridView.builder(
+                shrinkWrap: true, 
+                physics: const NeverScrollableScrollPhysics(), 
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
@@ -43,16 +46,17 @@ class ReportCategoryScreen extends StatelessWidget {
                   return ReportCategoryTile(category: _categories[index], isHighlighted: false);
                 },
               ),
-            ),
-            const SizedBox(height: 16),
-            const DownloadReportButton(),
-            const SizedBox(height: 16),
-          ],
+              const SizedBox(height: 16),
+              const PdfDownloadButtons(),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
 
 class ReportCategoryTile extends StatelessWidget {
   final ReportCategory category;
@@ -141,30 +145,87 @@ class ScoreReportCategoryTile extends StatelessWidget {
   }
 }
 
-class DownloadReportButton extends StatelessWidget {
-  const DownloadReportButton({super.key});
+class PdfDownloadButtons extends StatelessWidget {
+  const PdfDownloadButtons({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Expanded(
+          child: PdfDownloadButton(
+            title: '리포트 PDF\n다운로드\n(모두)',
+            color: Colors.green.shade100,
+            imagePath: 'assets/report_icon/green_pdf.png',
+            onTap: () => PdfDownloadModal.show(context),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: PdfDownloadButton(
+            title: '리포트 PDF\n다운로드\n(의사)',
+            color: Colors.blue.shade100,
+            imagePath: 'assets/report_icon/blue_pdf.png',
+            onTap: () async {
+              bool? result = await PdfDownloadModal.show(context);
+              if (result == true) {
+                PdfDoctorCodeModal.show(context);
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+
+class PdfDownloadButton extends StatelessWidget {
+  final String title;
+  final Color color;
+  final String imagePath;
+  final VoidCallback onTap;
+
+  const PdfDownloadButton({
+    super.key,
+    required this.title,
+    required this.color,
+    required this.imagePath,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        PdfDownloadModal.show(context);
-      },
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        height: 160,
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.green.shade100,
+          color: color,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            Text(
-              '리포트 PDF 다운로드 (본인용)',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+            Align(
+              alignment: Alignment.topLeft,
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            const SizedBox(width: 14),
-            Image.asset('assets/report_icon/green_pdf.png', width: 40, height: 40),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Image.asset(
+                imagePath,
+                width: 60,
+                height: 60,
+                fit: BoxFit.contain,
+              ),
+            ),
           ],
         ),
       ),
