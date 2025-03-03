@@ -1,5 +1,6 @@
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ModifyProfileScreen extends StatefulWidget {
   const ModifyProfileScreen({super.key});
@@ -18,11 +19,6 @@ class _ModifyProfileScreenState extends State<ModifyProfileScreen> {
   final FocusNode _phone1Focus = FocusNode();
   final FocusNode _phone2Focus = FocusNode();
   final FocusNode _phone3Focus = FocusNode();
-  final FocusNode _heightFocus = FocusNode();
-  final FocusNode _weightFocus = FocusNode();
-  final FocusNode _morningFocus = FocusNode();
-  final FocusNode _lunchFocus = FocusNode();
-  final FocusNode _dinnerFocus = FocusNode();
 
   void _toggleLunarSelection(int index) {
     setState(() {
@@ -48,11 +44,6 @@ class _ModifyProfileScreenState extends State<ModifyProfileScreen> {
     _phone1Focus.dispose();
     _phone2Focus.dispose();
     _phone3Focus.dispose();
-    _heightFocus.dispose();
-    _weightFocus.dispose();
-    _morningFocus.dispose();
-    _lunchFocus.dispose();
-    _dinnerFocus.dispose();
     super.dispose();
   }
 
@@ -64,7 +55,7 @@ class _ModifyProfileScreenState extends State<ModifyProfileScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(25.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _buildProfileHeader(),
             const SizedBox(height: 16),
@@ -74,14 +65,24 @@ class _ModifyProfileScreenState extends State<ModifyProfileScreen> {
               _buildGenderSelection(),
               _buildTextField('주소         ', _addressFocus, _phone1Focus),
               _buildPhoneNumberField(),
-              _buildHeightWeightField(),
             ]),
-            const SizedBox(height: 16),
-            _buildSection('추가 정보', [
-              _buildTextField('아침시간 ', _morningFocus, _lunchFocus),
-              _buildTextField('점심시간 ', _lunchFocus, _dinnerFocus),
-              _buildTextField('저녁시간 ', _dinnerFocus, null),
-            ]),
+            const SizedBox(height: 15),
+            ElevatedButton(
+              onPressed: () {
+                context.go('/homeSetting/viewProfile');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.green,
+                side: const BorderSide(color: Colors.green, width: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 15),
+              ),
+              child: const Text(
+                '수정 완료', 
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+              ),
+            ),
           ],
         ),
       ),
@@ -226,21 +227,7 @@ class _ModifyProfileScreenState extends State<ModifyProfileScreen> {
         Expanded(child: _buildTextField('', _phone2Focus, _phone3Focus)),
         const SizedBox(width: 10),
         const Text("-"),
-        Expanded(child: _buildTextField('', _phone3Focus, _heightFocus)),
-      ],
-    );
-  }
-
-  Widget _buildHeightWeightField() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildTextField('신장 (cm)', _heightFocus, _weightFocus),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildTextField('체중 (kg)', _weightFocus, _morningFocus),
-        ),
+        Expanded(child: _buildTextField('', _phone3Focus, null)),
       ],
     );
   }
