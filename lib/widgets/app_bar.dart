@@ -28,7 +28,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.notifications_none_outlined),
           onPressed: () {
-            context.go('/homeCalendar/notiList');
+            context.go('/homeElderlyList/notiList');
           },
         ),
         IconButton(

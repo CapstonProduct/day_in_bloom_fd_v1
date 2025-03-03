@@ -30,15 +30,15 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: '/homeElderlyList',
           pageBuilder: (context, state) => NoTransitionPage(child: HomeElderlyListScreen()),
-          routes: [        
+          routes: [  
+            GoRoute(
+              path: 'notiList',
+              pageBuilder: (context, state) => NoTransitionPage(child: NotificationListScreen()),
+            ),      
             GoRoute(
               path: '/calendar',
               pageBuilder: (context, state) => NoTransitionPage(child: CalendarScreen()),
               routes: [
-                GoRoute(
-                  path: 'notiList',
-                  pageBuilder: (context, state) => NoTransitionPage(child: NotificationListScreen()),
-                ),
                 GoRoute(
                   path: 'report',
                   pageBuilder: (context, state) => NoTransitionPage(child: ReportCategoryScreen()),
