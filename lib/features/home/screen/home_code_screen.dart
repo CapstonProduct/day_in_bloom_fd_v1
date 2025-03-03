@@ -127,7 +127,7 @@ class HomeCodeScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Color.fromRGBO(0, 128, 128, 0.4),
+                color: Color.fromRGBO(0, 128, 128, 0.2),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
