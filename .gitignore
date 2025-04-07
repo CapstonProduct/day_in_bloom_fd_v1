@@ -46,3 +46,4 @@ app.*.map.json
 
 # API key info.
 .env
+/assets/.env
