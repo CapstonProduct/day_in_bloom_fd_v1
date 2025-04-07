@@ -6,7 +6,8 @@ plugins {
 }
 
 android {
-    namespace = "com.example.day_in_bloom_fd_v1"
+    namespace "com.example.day_in_bloom_fd_v1"
+
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

@@ -1,3 +1,4 @@
+import 'package:day_in_bloom_fd_v1/features/authentication/screen/login_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/calender_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/modify_doctor_advice_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/modify_family_advice_screen.dart';
@@ -22,8 +23,12 @@ import 'package:day_in_bloom_fd_v1/features/home/screen/home_code_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/home/screen/home_setting_screen.dart';
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/homeElderlyList',
+  initialLocation: '/login',
   routes: [
+    GoRoute( 
+      path: '/login',
+      pageBuilder: (context, state) => NoTransitionPage(child: LoginScreen()),
+    ),
     ShellRoute(
       builder: (context, state, child) {
         return MainScreen(child: child);

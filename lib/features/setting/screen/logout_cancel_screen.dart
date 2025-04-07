@@ -1,9 +1,21 @@
 import 'package:day_in_bloom_fd_v1/features/authentication/screen/account_withdraw_modal.dart';
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
 
 class LogoutCancelScreen extends StatelessWidget {
   const LogoutCancelScreen({super.key});
+
+  Future<void> _logout(BuildContext context) async {
+    final storage = FlutterSecureStorage();
+
+    await storage.deleteAll();
+
+    if (context.mounted) {
+      context.go('/login');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +30,7 @@ class LogoutCancelScreen extends StatelessWidget {
               title: '계정 로그아웃 (나가기)',
               imagePath: 'assets/setting_icon/logout.png',
               onTap: () {
-                
+                _logout(context); 
               },
             ),
             _buildSettingOption(

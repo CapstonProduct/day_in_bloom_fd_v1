@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.remove;
-
-  runApp(MyApp());
+  
+  KakaoSdk.init(nativeAppKey: 'e4ff3187f9b20b4b9ecae0fa40ad9e38'); 
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

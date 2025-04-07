@@ -43,6 +43,10 @@ dependencies:
   youtube_player_flutter: 9.1.1
   url_launcher: 6.3.1
   http: 1.3.0
+  smooth_page_indicator: ^1.2.1
+  flutter_secure_storage: ^9.2.4
+  kakao_flutter_sdk_user: ^1.9.7+3
+  kakao_flutter_sdk: ^1.9.7+3
 
 flutter_native_splash:
   android: true
@@ -144,6 +148,10 @@ flutter:
     - assets/remove_img/exercise_graph_ex.png
     - assets/remove_img/sleep_graph_ex.png
 
+    - assets/login_guide_img/guide1.png
+    - assets/login_guide_img/guide2.png
+    - assets/login_guide_img/guide3.png
+    - assets/login_guide_img/guide4.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

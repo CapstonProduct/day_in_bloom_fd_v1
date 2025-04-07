@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeElderlyListScreen extends StatefulWidget {
@@ -10,6 +11,23 @@ class HomeElderlyListScreen extends StatefulWidget {
 }
 
 class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
+  final storage = FlutterSecureStorage();
+  String? userId, nickname, accessToken, refreshToken;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    userId = await storage.read(key: 'userId');
+    nickname = await storage.read(key: 'nickname');
+    accessToken = await storage.read(key: 'accessToken');
+    refreshToken = await storage.read(key: 'refreshToken');
+    setState(() {});
+  }
+
   static final List<Map<String, String>> elderlyList = [
     {
       "name": "최범식",
@@ -43,79 +61,86 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: "어르신 목록"),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: elderlyList.length,
-                    itemBuilder: (context, index) {
-                      final elderly = elderlyList[index];
-                      return GestureDetector(
-                        onTap: () {
-                          context.go(
-                            '/homeElderlyList/calendar?name=${elderly["name"]}'
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'User ID: $userId\nNickname: $nickname\nAccess Token: $accessToken\nRefresh Token: $refreshToken',
+                style: const TextStyle(fontSize: 12, color: Colors.black),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: elderlyList.length,
+                        itemBuilder: (context, index) {
+                          final elderly = elderlyList[index];
+                          return GestureDetector(
+                            onTap: () {
+                              context.go('/homeElderlyList/calendar?name=${elderly["name"]}');
+                            },
+                            child: ElderlyListItem(
+                              name: elderly["name"]!,
+                              age: elderly["age"]!,
+                              location: elderly["location"]!,
+                              imagePath: elderly["imagePath"]!,
+                            ),
                           );
                         },
-                        child: ElderlyListItem(
-                          name: elderly["name"]!,
-                          age: elderly["age"]!,
-                          location: elderly["location"]!,
-                          imagePath: elderly["imagePath"]!,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(height: 16),
-                ToggleButtons(
-                  borderRadius: BorderRadius.circular(10),
-                  borderWidth: 1.5,
-                  borderColor: Colors.teal,
-                  selectedBorderColor: Colors.teal,
-                  fillColor: Colors.teal.shade100,
-                  selectedColor: Colors.teal.shade900,
-                  color: Colors.teal,
-                  constraints: const BoxConstraints(minHeight: 40, minWidth: 100),
-                  isSelected: isSelected,
-                  onPressed: (index) {
-                    setState(() {
-                      for (int i = 0; i < isSelected.length; i++) {
-                        isSelected[i] = (i == index);
-                      }
-                    });
-                  },
-                  children: const [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Text(
-                        "보호자",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal,
-                        ),
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Text(
-                        "의사",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal,
+                    const SizedBox(height: 16),
+                    ToggleButtons(
+                      borderRadius: BorderRadius.circular(10),
+                      borderWidth: 1.5,
+                      borderColor: Colors.teal,
+                      selectedBorderColor: Colors.teal,
+                      fillColor: Colors.teal.shade100,
+                      selectedColor: Colors.teal.shade900,
+                      color: Colors.teal,
+                      constraints: const BoxConstraints(minHeight: 40, minWidth: 100),
+                      isSelected: isSelected,
+                      onPressed: (index) {
+                        setState(() {
+                          for (int i = 0; i < isSelected.length; i++) {
+                            isSelected[i] = (i == index);
+                          }
+                        });
+                      },
+                      children: const [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            "보호자",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                            ),
+                          ),
                         ),
-                      ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            "의사",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

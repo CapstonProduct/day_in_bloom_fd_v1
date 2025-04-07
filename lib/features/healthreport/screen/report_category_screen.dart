@@ -105,7 +105,7 @@ class ElderlyInfo extends StatelessWidget {
     final List<Map<String, String>> infoItems = [
       {'label': '주소', 'value': '서울특별시 광진구 어딘가'},
       {'label': '전화번호', 'value': '010 - 1234 - 5678'},
-      {'label': '신장 / 체중', 'value': '201 cm / 102 kg'},
+      {'label': '신장 / 체중', 'value': '170 cm / 70 kg'},
       {'label': '아침시간', 'value': '09:00'},
       {'label': '점심시간', 'value': '13:00'},
       {'label': '저녁시간', 'value': '18:00'},

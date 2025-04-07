@@ -53,5 +53,22 @@
 			<key>NSAllowsArbitraryLoads</key>
 			<true/>
 		</dict>
+		<!--Kakao oauth login-->
+		<key>CFBundleURLTypes</key>
+		<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+			<string>kakaoe4ff3187f9b20b4b9ecae0fa40ad9e38</string>
+			</array>
+		</dict>
+		</array>
+
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+		<string>kakaokompassauth</string>
+		<string>kakaolink</string>
+		<string>kakaotalk</string>
+		</array>
 	</dict>
 </plist>
