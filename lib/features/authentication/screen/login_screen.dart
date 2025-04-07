@@ -84,27 +84,40 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 40),
                   SizedBox(
-                    height: 340,
+                    height: 440,
                     child: PageView.builder(
                       controller: _pageController,
                       itemCount: guideTexts.length,
                       itemBuilder: (context, index) {
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text(
-                              guideTexts[index],
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(12.0),
                             ),
-                            const SizedBox(height: 15),
-                            Expanded(
-                              child: Image.asset(
-                                'assets/login_guide_img/guide${index + 1}.png',
-                                fit: BoxFit.contain,
-                              ),
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  guideTexts[index],
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                                ),
+                                const SizedBox(height: 15),
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    child: Image.asset(
+                                      'assets/login_guide_img/guide${index + 1}.png',
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         );
                       },
                     ),
