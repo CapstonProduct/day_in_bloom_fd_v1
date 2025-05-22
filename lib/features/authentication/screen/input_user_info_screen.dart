@@ -33,13 +33,14 @@ class _InputUserInfoScreenState extends State<InputUserInfoScreen> {
     }
 
     final kakaoUserId = await KakaoAuthService.getUserId();
-    if (kakaoUserId == null) {
-      print("user_id를 불러올 수 없습니다.");
+    final serverAccessToken = await KakaoAuthService.getServerAccessToken();
+
+    if (kakaoUserId == null || serverAccessToken == null) {
+      print("user_id 또는 access_token을 불러올 수 없습니다.");
       return;
     }
 
     final body = {
-      "kakao_user_id": kakaoUserId,
       "username": _controllers["이름"]!.text.trim(),
       "birth_date": _controllers["생년월일"]!.text.trim(),
       "gender": _selectedGender,
@@ -51,14 +52,18 @@ class _InputUserInfoScreenState extends State<InputUserInfoScreen> {
     print("전송할 사용자 정보 JSON:\n$prettyJson");
 
     try {
-      final url = dotenv.env['USER_INFO_API_GATEWAY_URL'];
-      if (url == null || url.isEmpty) {
+      final baseUrl = dotenv.env['USER_INFO_API_GATEWAY_URL'];
+      if (baseUrl == null || baseUrl.isEmpty) {
         throw Exception(".env에서 USER_INFO_API_GATEWAY_URL 설정을 찾을 수 없습니다.");
       }
 
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {"Content-Type": "application/json"},
+      final fullUrl = Uri.parse('$baseUrl/$kakaoUserId');
+      final response = await http.put(
+        fullUrl,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Basic $serverAccessToken", 
+        },
         body: jsonEncode(body),
       );
 
@@ -67,6 +72,7 @@ class _InputUserInfoScreenState extends State<InputUserInfoScreen> {
         if (context.mounted) context.go('/homeElderlyList');
       } else {
         print("사용자 정보 업데이트 실패: ${response.statusCode}");
+        print("응답 본문: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("서버 오류: ${response.statusCode}")),
         );

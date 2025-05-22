@@ -25,7 +25,7 @@ class KakaoAuthService {
       await _storage.write(key: 'nickname', value: user.kakaoAccount?.profile?.nickname ?? 'unknown');
       await _storage.write(key: 'auto_login', value: autoLogin.toString());
 
-      final body = {"kakao_user_id": userId};
+      final body = {"kakao_user_id": userId, 'login_provider': 'kakao'};
       final url = dotenv.env['KAKAO_LOGIN_API_GATEWAY_URL'];
 
       final prettyJson = const JsonEncoder.withIndent('  ').convert(body);
@@ -42,6 +42,18 @@ class KakaoAuthService {
 
         if (response.statusCode == 200) {
           print("람다 전송 성공: $decoded");
+
+          final responseData = jsonDecode(decoded);
+          final serverAccessToken = responseData['access_token'];
+          final serverUserId = responseData['id'];
+
+          if (serverAccessToken != null) {
+            await _storage.write(key: 'server_access_token', value: serverAccessToken);
+            print("서버 access_token 저장 완료");
+          }
+          if (serverUserId != null) {
+            await _storage.write(key: 'server_user_id', value: serverUserId.toString());
+          }
         } else {
           print("람다 전송 실패: ${response.statusCode} - $decoded");
         }
@@ -54,6 +66,10 @@ class KakaoAuthService {
       print('카카오 로그인 에러: $e');
       return null;
     }
+  }
+
+  static Future<String?> getServerAccessToken() async {
+    return await _storage.read(key: 'server_access_token');
   }
 
   static Future<void> logout() async {
