@@ -52,8 +52,12 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
         body: jsonEncode(body),
       );
 
+      final responseBody = utf8.decode(response.bodyBytes);
+      print("응답 상태 코드: ${response.statusCode}");
+      print("받은 데이터:\n${const JsonEncoder.withIndent('  ').convert(jsonDecode(responseBody))}");
+
       if (response.statusCode == 200) {
-        final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final decoded = jsonDecode(responseBody) as Map<String, dynamic>;
         final List<Map<String, String>> loadedList = [];
 
         int colorIndex = 0;
@@ -92,6 +96,7 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
       setState(() => _isLoading = false);
     }
   }
+
 
   String _calculateAge(String birthDateStr) {
     try {

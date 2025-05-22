@@ -113,11 +113,47 @@ class _HomeCodeScreenState extends State<HomeCodeScreen> {
   Future<void> _removeElderly(String encodedId) async {
     print("삭제 요청 ID: $encodedId");
 
-    // 실제 삭제 로직은 여기에 구현해야 함.
+    final kakaoUserId = await KakaoAuthService.getUserId();
+    if (kakaoUserId == null) {
+      print("사용자 ID를 불러올 수 없습니다.");
+      return;
+    }
 
-    setState(() {
-      elderlyList.removeWhere((elderly) => elderly["encodedId"] == encodedId);
-    });
+    final body = {
+      "kakao_user_id": kakaoUserId,
+      "encodedId": encodedId,
+    };
+
+    final url = dotenv.env['REMOVE_ELDERLY_MAPPING_API_GATEWAY_URL'];
+
+    if (url == null || url.isEmpty) {
+      print(".env에서 REMOVE_ELDERLY_MAPPING_API_GATEWAY_URL 설정이 없습니다.");
+      return;
+    }
+
+    print("보내는 데이터:\n${const JsonEncoder.withIndent('  ').convert(body)}");
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      final responseBody = utf8.decode(response.bodyBytes);
+      print("응답 상태 코드: ${response.statusCode}");
+      print("응답 본문: $responseBody");
+
+      if (response.statusCode == 200) {
+        setState(() {
+          elderlyList.removeWhere((elderly) => elderly["encodedId"] == encodedId);
+        });
+      } else {
+        print("삭제 실패: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("삭제 API 호출 중 오류 발생: $e");
+    }
   }
 
   @override
