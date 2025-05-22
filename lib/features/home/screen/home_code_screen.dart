@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:day_in_bloom_fd_v1/features/elderlycode/screen/code_explanation_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -111,7 +112,7 @@ class _HomeCodeScreenState extends State<HomeCodeScreen> {
 
   Future<void> _removeElderly(String encodedId) async {
     print("삭제 요청 ID: $encodedId");
-    
+
     // 실제 삭제 로직은 여기에 구현해야 함.
 
     setState(() {
@@ -167,6 +168,36 @@ class _HomeCodeScreenState extends State<HomeCodeScreen> {
                         },
                       ),
                     ),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.center,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Color.fromRGBO(0, 128, 128, 0.4),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "어르신 등록 코드란?",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => const CodeExplanationModal(),
+                        );
+                      },
+                      child: const Icon(Icons.help_outline, color: Colors.black54, size: 30),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

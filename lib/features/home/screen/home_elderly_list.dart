@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
@@ -12,49 +15,97 @@ class HomeElderlyListScreen extends StatefulWidget {
 }
 
 class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
-  final storage = FlutterSecureStorage();
-  String? userId, nickname, accessToken, refreshToken;
+  List<Map<String, String>> elderlyList = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUserInfo();
+    fetchElderlyList();
   }
 
-  Future<void> _loadUserInfo() async {
-    userId = await KakaoAuthService.getUserId();
-    nickname = await KakaoAuthService.getNickname();
-    accessToken = await KakaoAuthService.getAccessToken();
-    refreshToken = await KakaoAuthService.getRefreshToken();
-    setState(() {});
+  Future<void> fetchElderlyList() async {
+    setState(() => _isLoading = true);
+
+    final kakaoUserId = await KakaoAuthService.getUserId();
+    if (kakaoUserId == null) {
+      print("사용자 ID를 불러올 수 없습니다.");
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final body = {"kakao_user_id": kakaoUserId};
+    final url = dotenv.env['HOME_ELDERLY_LIST_API_GATEWAY_URL'];
+
+    if (url == null || url.isEmpty) {
+      print(".env에서 HOME_ELDERLY_LIST_API_GATEWAY_URL 설정을 찾을 수 없습니다.");
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    print("전송할 데이터:\n${const JsonEncoder.withIndent('  ').convert(body)}");
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final List<Map<String, String>> loadedList = [];
+
+        int colorIndex = 0;
+        final List<String> profileImagePaths = [
+          "assets/profile_icon/orange_profile.png",
+          "assets/profile_icon/green_profile.png",
+          "assets/profile_icon/red_profile.png",
+          "assets/profile_icon/blue_profile.png",
+          "assets/profile_icon/purple_profile.png",
+        ];
+
+        for (final entry in decoded.entries) {
+          final data = entry.value as Map<String, dynamic>;
+
+          final imagePath = profileImagePaths[colorIndex % profileImagePaths.length];
+          colorIndex++;
+
+          loadedList.add({
+            "name": data["username"] ?? "",
+            "age": _calculateAge(data["birth_date"]),
+            "location": data["address"] ?? "",
+            "imagePath": imagePath,
+          });
+        }
+
+        setState(() {
+          elderlyList = loadedList;
+          _isLoading = false;
+        });
+      } else {
+        print("서버 오류: ${response.statusCode}");
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      print("네트워크 오류: $e");
+      setState(() => _isLoading = false);
+    }
   }
 
-  static final List<Map<String, String>> elderlyList = [
-    {
-      "name": "최범식",
-      "age": "70세",
-      "location": "서울시 동대문구",
-      "imagePath": "assets/profile_icon/orange_profile.png",
-    },
-    {
-      "name": "유순자",
-      "age": "60세",
-      "location": "경기도 시흥시",
-      "imagePath": "assets/profile_icon/green_profile.png",
-    },
-    {
-      "name": "김미영",
-      "age": "67세",
-      "location": "서울시 은평구",
-      "imagePath": "assets/profile_icon/red_profile.png",
-    },
-    {
-      "name": "박영수",
-      "age": "75세",
-      "location": "부산광역시 해운대구",
-      "imagePath": "assets/profile_icon/green_profile.png",
-    },
-  ];
+  String _calculateAge(String birthDateStr) {
+    try {
+      final birthDate = DateTime.parse(birthDateStr);
+      final now = DateTime.now();
+      int age = now.year - birthDate.year;
+      if (now.month < birthDate.month || (now.month == birthDate.month && now.day < birthDate.day)) {
+        age--;
+      }
+      return "$age세";
+    } catch (_) {
+      return "나이 정보 없음";
+    }
+  }
 
   List<bool> isSelected = [true, false];
 
@@ -68,73 +119,73 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'User ID: $userId\nNickname: $nickname\nAccess Token: $accessToken\nRefresh Token: $refreshToken',
-                style: const TextStyle(fontSize: 12, color: Colors.black),
-              ),
               const SizedBox(height: 10),
               Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: elderlyList.length,
-                        itemBuilder: (context, index) {
-                          final elderly = elderlyList[index];
-                          return GestureDetector(
-                            onTap: () {
-                              context.go('/homeElderlyList/calendar?name=${elderly["name"]}');
-                            },
-                            child: ElderlyListItem(
-                              name: elderly["name"]!,
-                              age: elderly["age"]!,
-                              location: elderly["location"]!,
-                              imagePath: elderly["imagePath"]!,
-                            ),
-                          );
-                        },
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: Colors.teal))
+                    : RefreshIndicator(
+                        onRefresh: fetchElderlyList,
+                        color: Colors.teal,
+                        backgroundColor: Colors.white,
+                        child: ListView.builder(
+                          itemCount: elderlyList.length,
+                          itemBuilder: (context, index) {
+                            final elderly = elderlyList[index];
+                            return GestureDetector(
+                              onTap: () {
+                                context.go('/homeElderlyList/calendar?name=${elderly["name"]}');
+                              },
+                              child: ElderlyListItem(
+                                name: elderly["name"]!,
+                                age: elderly["age"]!,
+                                location: elderly["location"]!,
+                                imagePath: elderly["imagePath"]!,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.center,
+                child: ToggleButtons(
+                  borderRadius: BorderRadius.circular(10),
+                  borderWidth: 1.5,
+                  borderColor: Colors.teal,
+                  selectedBorderColor: Colors.teal,
+                  fillColor: Colors.teal.shade100,
+                  selectedColor: Colors.teal.shade900,
+                  color: Colors.teal,
+                  constraints: const BoxConstraints(minHeight: 40, minWidth: 100),
+                  isSelected: isSelected,
+                  onPressed: (index) {
+                    setState(() {
+                      for (int i = 0; i < isSelected.length; i++) {
+                        isSelected[i] = (i == index);
+                      }
+                    });
+                  },
+                  children: const [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        "보호자",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    ToggleButtons(
-                      borderRadius: BorderRadius.circular(10),
-                      borderWidth: 1.5,
-                      borderColor: Colors.teal,
-                      selectedBorderColor: Colors.teal,
-                      fillColor: Colors.teal.shade100,
-                      selectedColor: Colors.teal.shade900,
-                      color: Colors.teal,
-                      constraints: const BoxConstraints(minHeight: 40, minWidth: 100),
-                      isSelected: isSelected,
-                      onPressed: (index) {
-                        setState(() {
-                          for (int i = 0; i < isSelected.length; i++) {
-                            isSelected[i] = (i == index);
-                          }
-                        });
-                      },
-                      children: const [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            "보호자",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.teal,
-                            ),
-                          ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        "의사",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
                         ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            "의사",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.teal,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
