@@ -1,3 +1,4 @@
+import 'package:day_in_bloom_fd_v1/features/authentication/screen/input_user_info_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/authentication/screen/login_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/calender_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/modify_doctor_advice_screen.dart';
@@ -28,6 +29,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute( 
       path: '/login',
       pageBuilder: (context, state) => NoTransitionPage(child: LoginScreen()),
+      routes: [
+        GoRoute(
+          path: 'inputUserInfo',
+          pageBuilder: (context, state) => NoTransitionPage(child: InputUserInfoScreen()),
+        ),
+      ],      
     ),
     ShellRoute(
       builder: (context, state, child) {

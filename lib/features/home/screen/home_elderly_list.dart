@@ -1,3 +1,4 @@
+import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -21,10 +22,10 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
   }
 
   Future<void> _loadUserInfo() async {
-    userId = await storage.read(key: 'userId');
-    nickname = await storage.read(key: 'nickname');
-    accessToken = await storage.read(key: 'accessToken');
-    refreshToken = await storage.read(key: 'refreshToken');
+    userId = await KakaoAuthService.getUserId();
+    nickname = await KakaoAuthService.getNickname();
+    accessToken = await KakaoAuthService.getAccessToken();
+    refreshToken = await KakaoAuthService.getRefreshToken();
     setState(() {});
   }
 

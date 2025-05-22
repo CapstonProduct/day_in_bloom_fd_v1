@@ -3,6 +3,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,28 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
   ];
 
   bool _autoLogin = false;
-
-  Future<void> _loginWithKakao() async {
-    try {
-      OAuthToken token;
-      if (await isKakaoTalkInstalled()) {
-        token = await UserApi.instance.loginWithKakaoTalk();
-      } else {
-        token = await UserApi.instance.loginWithKakaoAccount();
-      }
-
-      final user = await UserApi.instance.me();
-      await storage.write(key: 'accessToken', value: token.accessToken);
-      await storage.write(key: 'refreshToken', value: token.refreshToken);
-      await storage.write(key: 'userId', value: user.id.toString());
-      await storage.write(key: 'nickname', value: user.kakaoAccount?.profile?.nickname ?? 'unknown');
-      await storage.write(key: 'autoLogin', value: _autoLogin.toString());
-
-      if (context.mounted) context.go('/homeElderlyList');
-    } catch (e) {
-      print('로그인 실패: $e');
-    }
-  }
 
   @override
   void initState() {
@@ -162,7 +144,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         backgroundColor: Colors.amber,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                       ),
-                      onPressed: _loginWithKakao,
+                     onPressed: () async {
+                        try {
+                          final result = await KakaoAuthService.loginWithKakao(autoLogin: _autoLogin);
+                          final alreadyEntered = await KakaoAuthService.isUserInfoEntered();
+                          if (!mounted) return;
+
+                          if (!alreadyEntered) {
+                            context.go('/login/inputUserInfo');
+                          } else {
+                            context.go('/homeElderlyList');
+                          }
+                        } catch (e) {
+                          print("로그인 실패: $e");
+                        }
+                      },
                       child: const Text(
                         "카카오 로그인",
                         style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
