@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -109,7 +110,7 @@ class _ReportCategoryScreenState extends State<ReportCategoryScreen> {
                   children: [
                     Text(selectedDate, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 20),
-                    ElderlyInfo(),
+                    ElderlyInfo(encodedId: encodedId),
                     const SizedBox(height: 16),
                     GridView.builder(
                       shrinkWrap: true,
@@ -146,96 +147,139 @@ class _ReportCategoryScreenState extends State<ReportCategoryScreen> {
   }
 }
 
+Future<Map<String, dynamic>> fetchElderlyProfile(String encodedId) async {
+  final baseUrl = dotenv.env['ROOT_API_GATEWAY_URL'];
+  if (baseUrl == null || baseUrl.isEmpty) {
+    throw Exception(".env에 ROOT_API_GATEWAY_URL이 설정되지 않았습니다.");
+  }
+
+  final url = Uri.parse('$baseUrl/reports/elderlyProfile?encodedId=$encodedId');
+  debugPrint("=== 노인 프로필 API 호출 URL: $url");
+
+  final response = await http.get(
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode != 200) {
+    debugPrint("노인 프로필 API 실패: ${response.body}");
+    throw Exception("노인 프로필 데이터 불러오기 실패");
+  }
+
+  return json.decode(response.body);
+}
 
 class ElderlyInfo extends StatelessWidget {
+  final String encodedId;
+
+  const ElderlyInfo({super.key, required this.encodedId});
+
   @override
   Widget build(BuildContext context) {
-    final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
+    return FutureBuilder<Map<String, dynamic>>(
+      future: fetchElderlyProfile(encodedId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: Colors.green));
+        } else if (snapshot.hasError) {
+          return Center(child: Text('오류 발생: ${snapshot.error}'));
+        } else if (!snapshot.hasData) {
+          return const Center(child: Text('프로필 데이터가 없습니다.'));
+        }
 
-    return Container(
-      padding: const EdgeInsets.all(4.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(16),
+        final data = snapshot.data!;
+        final name = data['username'] ?? '어르신';
+        final rawBirthDate = data['birth_date'];
+        final birthDate = rawBirthDate != null
+            ? DateFormat('yyyy-MM-dd').format(DateTime.parse(rawBirthDate))
+            : '-';
+        final height = data['height'] != null
+            ? data['height'].toDouble().toStringAsFixed(0)
+            : '-';
+        final weight = data['weight'] != null
+            ? data['weight'].toDouble().toStringAsFixed(1)
+            : '-';
+        final gender = data['gender'] ?? '-';
+        final address = data['address'] ?? '-';
+        final phone = data['phone_number'] ?? '-';
+        // final height = data['height']?.toString() ?? '-';
+        // final weight = data['weight']?.toString() ?? '-';
+        final breakfast = (data['breakfast_time'] as String?)?.substring(0, 5) ?? '-';
+        final lunch = (data['lunch_time'] as String?)?.substring(0, 5) ?? '-';
+        final dinner = (data['dinner_time'] as String?)?.substring(0, 5) ?? '-';
+
+        return Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.white,
+                    backgroundImage: AssetImage('assets/profile_icon/green_profile.png'),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(birthDate),
+                      Text(gender),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.white,
-                  backgroundImage: AssetImage('assets/profile_icon/green_profile.png'),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(elderlyName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text('1900-00-00'),
-                    Text('여성'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildInfoSection(),
-        ],
-      ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  _buildInfoRow('주소', address),
+                  const Divider(),
+                  _buildInfoRow('전화번호', phone),
+                  const Divider(),
+                  _buildInfoRow('신장 / 체중', '$height cm / $weight kg'),
+                  const Divider(),
+                  _buildInfoRow('아침시간', breakfast),
+                  const Divider(),
+                  _buildInfoRow('점심시간', lunch),
+                  const Divider(),
+                  _buildInfoRow('저녁시간', dinner),
+                ],
+              ),
+            )
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildInfoSection() {
-    final List<Map<String, String>> infoItems = [
-      {'label': '주소', 'value': '서울특별시 광진구 어딘가'},
-      {'label': '전화번호', 'value': '010 - 1234 - 5678'},
-      {'label': '신장 / 체중', 'value': '170 cm / 70 kg'},
-      {'label': '아침시간', 'value': '09:00'},
-      {'label': '점심시간', 'value': '13:00'},
-      {'label': '저녁시간', 'value': '18:00'},
-    ];
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: List.generate(infoItems.length * 2 - 1, (index) {
-          if (index.isEven) {
-            final item = infoItems[index ~/ 2];
-            return _buildInfoItem(item['label']!, item['value']!);
-          } else {
-            return Divider(
-              color: Colors.grey.shade400,
-              height: 4.0,
-              thickness: 1.0,
-            );
-          }
-        }),
-      ),
-    );
-  }
-
-  Widget _buildInfoItem(String label, String value) {
+  Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.black54)),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+          Text(label, style: const TextStyle(color: Colors.black54)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 }
+
 
 class ReportCategoryTile extends StatelessWidget {
   final ReportCategory category;

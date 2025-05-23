@@ -33,7 +33,7 @@ class _PdfReportViewerScreenState extends State<PdfReportViewerScreen> {
 
   Future<void> _fetchAndLoadPdf() async {
     try {
-      final encodedId = "테스트용"; // 필요 시 context에서 받아오도록 수정
+      final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'] ?? '';
       final dateParam = GoRouterState.of(context).uri.queryParameters['date'] ?? '';
 
       if (encodedId.isEmpty) throw Exception('사용자 정보가 없습니다.');
@@ -98,20 +98,13 @@ class _PdfReportViewerScreenState extends State<PdfReportViewerScreen> {
   }
 
   Widget _buildErrorMessage() {
-    final isNoReport = _error != null &&
-        (_error!.contains('해당 날짜에는 리포트 파일이 없습니다.') ||
-         _error!.contains('NoSuchKey') ||
-         _error!.contains('AccessDenied'));
-
-    return Center(
+    return const Center(
       child: Text(
-        isNoReport
-            ? '해당 날짜에는 리포트 파일이 없습니다.'
-            : '오류 발생: $_error',
+        '해당 날짜에 리포트가 존재하지 않거나,\n네트워크 연결이 불안정합니다.',
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: isNoReport ? Colors.grey[800] : Colors.red,
+          color: Colors.black54,
         ),
         textAlign: TextAlign.center,
       ),

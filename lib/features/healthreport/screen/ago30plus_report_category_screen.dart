@@ -57,7 +57,9 @@ class Ago30plusReportCategoryScreen extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '';
-                context.go('/homeElderlyList/calendar/ago30plusReport/pdfReportViewer?date=$selectedDate'); 
+                final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
+                final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'] ?? '';
+                context.go('/homeElderlyList/calendar/ago30plusReport/pdfReportViewer?date=$selectedDate&name=$elderlyName&encodedId=$encodedId'); 
               },
               child: Container(
                 width: double.infinity,
@@ -103,7 +105,6 @@ class ReportCategoryTile extends StatelessWidget {
         final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '';
         final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
         final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'] ?? '';
-        print("encodedId: $encodedId");
         context.go('${category.route}?date=$selectedDate&name=$elderlyName&encodedId=$encodedId');
       },
       child: Container(
