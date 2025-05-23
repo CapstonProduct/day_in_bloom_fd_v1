@@ -39,20 +39,13 @@ class _PdfReportViewerScreenState extends State<PdfReportViewerScreen> {
       if (encodedId.isEmpty) throw Exception('사용자 정보가 없습니다.');
       final reportDate = _formatDate(dateParam);
 
-      final uri = Uri.parse(
-        'https://gz96dflvf2.execute-api.ap-northeast-2.amazonaws.com/default/get-pdf-report',
-      );
-
-      final requestBody = {
+      final baseUrl = 'https://dayinbloom.shop/parents';
+      final uri = Uri.parse('$baseUrl/reports/pdf').replace(queryParameters: {
         'encodedId': encodedId,
         'report_date': reportDate,
-      };
+      });
 
-      final response = await http.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(requestBody),
-      );
+      final response = await http.get(uri);
 
       if (response.statusCode != 200) {
         throw Exception('PDF 링크 요청 실패: ${response.body}');

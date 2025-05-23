@@ -32,14 +32,14 @@ class PdfDownloadModal {
               children: [
                 TextButton(
                   onPressed: () async {
-                    Navigator.of(dialogContext).pop(true); // true 반환
+                    Navigator.of(dialogContext).pop(true); // <-- true 반환
                     await _downloadPdf(context, reportDate, encodedId);
                   },
                   child: const Text('예', style: TextStyle(color: Colors.blue)),
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(dialogContext).pop(false); // false 반환
+                    Navigator.of(dialogContext).pop(false); // <-- false 반환
                   },
                   child: const Text('아니요', style: TextStyle(color: Colors.red)),
                 ),
@@ -51,21 +51,18 @@ class PdfDownloadModal {
     );
   }
 
+
   static Future<void> _downloadPdf(BuildContext context, String rawDate, String encodedId) async {
     try {
       if (encodedId.isEmpty) throw Exception('사용자 정보 없음');
 
       final formattedDate = _formatDate(rawDate);
-      final requestBody = {
+      final uri = Uri.parse('https://dayinbloom.shop/parents/reports/pdf').replace(queryParameters: {
         'encodedId': encodedId,
         'report_date': formattedDate,
-      };
+      });
 
-      final response = await http.post(
-        Uri.parse('https://gz96dflvf2.execute-api.ap-northeast-2.amazonaws.com/default/get-pdf-report'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(requestBody),
-      );
+      final response = await http.get(uri);
 
       if (response.statusCode != 200) {
         throw Exception('PDF 링크 요청 실패');
