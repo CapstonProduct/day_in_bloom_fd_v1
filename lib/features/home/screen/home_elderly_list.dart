@@ -28,28 +28,32 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
     setState(() => _isLoading = true);
 
     final kakaoUserId = await KakaoAuthService.getUserId();
-    if (kakaoUserId == null) {
-      print("사용자 ID를 불러올 수 없습니다.");
+    final serverAccessToken = await KakaoAuthService.getServerAccessToken();
+
+    if (kakaoUserId == null || serverAccessToken == null) {
+      print("사용자 ID 또는 서버 액세스 토큰을 불러올 수 없습니다.");
       setState(() => _isLoading = false);
       return;
     }
 
-    final body = {"kakao_user_id": kakaoUserId};
-    final url = dotenv.env['HOME_ELDERLY_LIST_API_GATEWAY_URL'];
+    final baseUrl = dotenv.env['HOME_ELDERLY_LIST_API_GATEWAY_URL'];
 
-    if (url == null || url.isEmpty) {
+    if (baseUrl == null || baseUrl.isEmpty) {
       print(".env에서 HOME_ELDERLY_LIST_API_GATEWAY_URL 설정을 찾을 수 없습니다.");
       setState(() => _isLoading = false);
       return;
     }
 
-    print("전송할 데이터:\n${const JsonEncoder.withIndent('  ').convert(body)}");
+    final url = Uri.parse('$baseUrl/$kakaoUserId/seniors');
+    print("요청 URL: $url");
 
     try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(body),
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Basic $serverAccessToken",
+        },
       );
 
       final responseBody = utf8.decode(response.bodyBytes);
@@ -58,6 +62,7 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(responseBody) as Map<String, dynamic>;
+        final seniors = decoded["seniors"] as List<dynamic>;
         final List<Map<String, String>> loadedList = [];
 
         int colorIndex = 0;
@@ -69,8 +74,8 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
           "assets/profile_icon/purple_profile.png",
         ];
 
-        for (final entry in decoded.entries) {
-          final data = entry.value as Map<String, dynamic>;
+        for (final senior in seniors) {
+          final data = senior as Map<String, dynamic>;
 
           final imagePath = profileImagePaths[colorIndex % profileImagePaths.length];
           colorIndex++;
@@ -80,6 +85,7 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
             "age": _calculateAge(data["birth_date"]),
             "location": data["address"] ?? "",
             "imagePath": imagePath,
+            "encodedId": data["encodedId"],
           });
         }
 
@@ -96,7 +102,6 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
       setState(() => _isLoading = false);
     }
   }
-
 
   String _calculateAge(String birthDateStr) {
     try {
@@ -138,7 +143,9 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
                             final elderly = elderlyList[index];
                             return GestureDetector(
                               onTap: () {
-                                context.go('/homeElderlyList/calendar?name=${elderly["name"]}');
+                                final name = elderly["name"];
+                                final encodedId = elderly["encodedId"];
+                                context.go('/homeElderlyList/calendar?name=$name&encodedId=$encodedId');
                               },
                               child: ElderlyListItem(
                                 name: elderly["name"]!,

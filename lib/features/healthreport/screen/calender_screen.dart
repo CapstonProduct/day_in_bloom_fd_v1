@@ -9,6 +9,7 @@ class CalendarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
+    final String encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'] ?? '';
 
     return Scaffold(
       appBar: CustomAppBar(title: '$elderlyName 어르신 건강 캘린더'),
@@ -45,7 +46,7 @@ class CalendarScreen extends StatelessWidget {
                     CalendarWidget(
                       onDateSelected: (selectedDate) {
                         String formattedDate = "${selectedDate.year} / ${selectedDate.month.toString().padLeft(2, '0')} / ${selectedDate.day.toString().padLeft(2, '0')}";
-                        context.go('/homeElderlyList/calendar/report?date=$formattedDate&name=$elderlyName');
+                        context.go('/homeElderlyList/calendar/report?date=$formattedDate&name=$elderlyName&encodedId=$encodedId');
                       },
                     ),
                   ],
