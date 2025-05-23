@@ -35,6 +35,7 @@ class _ModifyDoctorAdviceScreenState extends State<ModifyDoctorAdviceScreen> {
   Widget build(BuildContext context) {
     final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '날짜 없음';
     final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
+    final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'];
 
     return Scaffold(
       appBar: CustomAppBar(title: "조언 수정하기"),
@@ -66,7 +67,7 @@ class _ModifyDoctorAdviceScreenState extends State<ModifyDoctorAdviceScreen> {
             SizedBox(height: 15),
             ElevatedButton(
               onPressed: () {
-                context.go('/homeElderlyList/calendar/report/doctorAdvice?date=$selectedDate&name=$elderlyName');
+                context.go('/homeElderlyList/calendar/report/doctorAdvice?date=$selectedDate&name=$elderlyName&encodedId=$encodedId');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,

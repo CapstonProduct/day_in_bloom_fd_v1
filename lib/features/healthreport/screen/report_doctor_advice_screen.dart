@@ -1,9 +1,96 @@
+import 'dart:convert';
+import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
+import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
+import 'package:intl/intl.dart';
 
-class ReportDoctorAdviceScreen extends StatelessWidget {
+class ReportDoctorAdviceScreen extends StatefulWidget {
   const ReportDoctorAdviceScreen({super.key});
+
+  @override
+  State<ReportDoctorAdviceScreen> createState() => _ReportDoctorAdviceScreenState();
+}
+
+class _ReportDoctorAdviceScreenState extends State<ReportDoctorAdviceScreen> {
+  late Future<String> _advice;
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _advice = _fetchAdvice();
+      _isInitialized = true;
+    }
+  }
+
+  Future<String> _fetchAdvice() async {
+    final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'];
+    debugPrint("encodedId: $encodedId");
+    final rawDate = GoRouterState.of(context).uri.queryParameters['date'];
+    final token = await KakaoAuthService.getServerAccessToken();
+
+    if (encodedId == null || rawDate == null) {
+      debugPrint("필수 쿼리 파라미터 누락: encodedId=$encodedId, rawDate=$rawDate");
+      throw Exception('사용자 ID 또는 날짜가 누락되었습니다.');
+    }
+
+    final formattedDate = _formatDate(rawDate);
+    final baseUrl = dotenv.env['ROOT_API_GATEWAY_URL'];
+    if (baseUrl == null || baseUrl.isEmpty) {
+      debugPrint(".env에서 ROOT_API_GATEWAY_URL이 비어 있음");
+      throw Exception(".env에 ROOT_API_GATEWAY_URL이 설정되지 않았습니다.");
+    }
+
+    final url = Uri.parse('$baseUrl/advice?encodedId=$encodedId&report_date=$formattedDate&role=doctor');
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Basic $token",
+    };
+
+    debugPrint("API 호출 URL: $url");
+    debugPrint("요청 헤더: $headers");
+
+    try {
+      final response = await http.get(url, headers: headers);
+
+      debugPrint("응답 상태 코드: ${response.statusCode}");
+      debugPrint("응답 원본 바디: ${response.body}");
+
+      final decodedBody = utf8.decode(response.bodyBytes);
+      debugPrint("디코딩된 응답 바디: $decodedBody");
+
+      if (response.statusCode != 200) {
+        throw Exception("API 호출 실패: $decodedBody");
+      }
+
+      final data = jsonDecode(decodedBody);
+      return data['content'] ?? '조언 내용이 없습니다.';
+    } catch (e, stack) {
+      debugPrint("예외 발생 during fetchAdvice: $e");
+      debugPrint("스택트레이스: $stack");
+      throw Exception("조언 데이터를 불러오는 중 오류 발생: $e");
+    }
+  }
+
+  String _formatDate(String rawDate) {
+    try {
+      final cleaned = rawDate.replaceAll(RegExp(r'\s+'), '').replaceAll('/', '-');
+      final parsed = DateTime.parse(cleaned);
+      return DateFormat('yyyy-MM-dd').format(parsed);
+    } catch (_) {
+      throw Exception("날짜 형식 오류: $rawDate");
+    }
+  }
+
+  Future<void> _refreshAdvice() async {
+    setState(() {
+      _advice = _fetchAdvice();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,91 +99,102 @@ class ReportDoctorAdviceScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: CustomAppBar(title: "$elderlyName 어르신 건강 리포트"),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 30,
-            ),
-            const Text(
-              "의사선생님 조언",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center, 
-                children: [
-                  SizedBox(
-                    width: 150,
-                    child: ElevatedButton(
-                      onPressed: () {},
+      body: RefreshIndicator(
+        onRefresh: _refreshAdvice,
+        color: Colors.green,
+        child: FutureBuilder<String>(
+          future: _advice,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: Colors.green));
+            } else if (snapshot.hasError) {
+              return Center(child: Text("오류 발생: ${snapshot.error}"));
+            }
+
+            final content = snapshot.data ?? '조언 내용이 없습니다.';
+            final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'];
+
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: 30),
+              child: Center(
+                child: Column(
+                  children: [
+                    const Text(
+                      "의사선생님 조언",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 12),
+                    _AdviceCard(date: selectedDate, content: content),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.go(
+                          '/homeElderlyList/calendar/report/doctorAdvice/modifyDoctorAdvice?date=$selectedDate&name=$elderlyName&encodedId=$encodedId',
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF41af7a),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.green,
+                        side: const BorderSide(color: Colors.green, width: 2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 15),
                       ),
-                      child: const Text(
-                        "조언과 응원",
-                        style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
+                      child: const Text('조언 수정하기', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: 350,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            selectedDate,
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black45),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            "어르신, 최근 건강 검진 결과를 바탕으로 몇 가지 조언을 드리겠습니다.\n"
-                            "혈압 수치가 다소 변동이 있으시므로, 염분 섭취를 줄이고 규칙적인 운동을 권장드립니다.\n"
-                            "특히, 가벼운 유산소 운동(예: 하루 30분 정도의 걷기)이 혈압 조절과 심혈관 건강에 도움이 됩니다.\n"
-                            "또한, 공복 혈당 수치가 정상 범위보다 약간 높게 나타났으므로, 탄수화물 섭취를 조절하고 식사 후 가벼운 활동을 하시면 좋겠습니다.\n"
-                            "체내 수분이 부족해지면 혈액 순환에 영향을 줄 수 있으니 하루 6~8잔 이상의 물을 섭취해 주세요.\n"
-                            "무엇보다도, 피로감이나 어지럼증과 같은 증상이 지속된다면 즉시 진료를 받아보시길 권장합니다.\n"
-                            "정기적인 건강 관리가 장기적인 건강 유지에 큰 도움이 되므로, 앞으로도 꾸준한 관리 부탁드립니다.",
-                            style: TextStyle(fontSize: 16, color: Colors.black87),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                context.go('/homeElderlyList/calendar/report/doctorAdvice/modifyDoctorAdvice?date=$selectedDate&name=$elderlyName');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.green,
-                side: const BorderSide(color: Colors.green, width: 2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 15),
-              ),
-              child: const Text(
-                '조언 수정하기', 
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
-              ),
-            ),
-          ],
+            );
+          },
         ),
+      ),
+    );
+  }
+}
+
+class _AdviceCard extends StatelessWidget {
+  final String date;
+  final String content;
+
+  const _AdviceCard({required this.date, required this.content});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          SizedBox(
+            width: 150,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF41af7a),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 4),
+              ),
+              child: const Text("조언과 응원", style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: 350,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(date, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black45)),
+                const SizedBox(height: 8),
+                Text(content, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
