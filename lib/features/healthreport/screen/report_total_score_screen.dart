@@ -79,9 +79,9 @@ class _ReportTotalScoreScreenState extends State<ReportTotalScoreScreen> {
     final remaining = minutes % 60;
 
     if (hours > 0) {
-      return '$hours시간 ${remaining}분';
+      return '$hours 시간 ${remaining} 분';
     } else {
-      return '$remaining분';
+      return '$remaining 분';
     }
   }
 
@@ -114,7 +114,7 @@ class _ReportTotalScoreScreenState extends State<ReportTotalScoreScreen> {
 
             final data = snapshot.data!;
             final int totalScore = int.tryParse(data['overall_health_score']?.toString() ?? '0') ?? 0;
-            final String stress = '${data['stress_score']?.toString() ?? "0"}점';
+            final String stress = '${data['stress_score']?.toString() ?? "0"} 점';
             final String exercise = formatMinutes(data['total_exercise_time']);
             final String sleep = formatMinutes(data['total_sleep_time']);
 
