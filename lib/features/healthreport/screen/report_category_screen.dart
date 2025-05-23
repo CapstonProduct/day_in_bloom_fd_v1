@@ -80,6 +80,7 @@ class _ReportCategoryScreenState extends State<ReportCategoryScreen> {
         padding: const EdgeInsets.all(35.0),
         child: RefreshIndicator(
           onRefresh: _refresh,
+          color: Colors.green,
           child: FutureBuilder<Map<String, dynamic>>(
             future: _reportData,
             builder: (context, snapshot) {
