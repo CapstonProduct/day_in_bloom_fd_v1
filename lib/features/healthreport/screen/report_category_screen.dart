@@ -363,9 +363,9 @@ class PdfDownloadButtons extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: PdfDownloadButton(
-            title: '리포트 PDF\n다운로드\n(의사)',
+            title: '로우데이터\n엑셀 파일\n다운로드\n(의사)',
             color: Colors.blue.shade100,
-            imagePath: 'assets/report_icon/blue_pdf.png',
+            imagePath: 'assets/report_icon/excel.png',
             onTap: () async {
               bool? result = await PdfDownloadModal.show(context);
               if (result == true) {

@@ -112,6 +112,7 @@ flutter:
     - assets/setting_icon/trashcan.png
     - assets/report_icon/blue_pdf.png
     - assets/report_icon/green_pdf.png
+    - assets/report_icon/excel.png
     - assets/report_icon/family_talk.png
     - assets/report_icon/doctor_talk.png
     - assets/report_icon/headache.png
