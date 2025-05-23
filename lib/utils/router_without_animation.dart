@@ -1,8 +1,10 @@
 import 'package:day_in_bloom_fd_v1/features/authentication/screen/input_user_info_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/authentication/screen/login_screen.dart';
+import 'package:day_in_bloom_fd_v1/features/healthreport/screen/ago30plus_report_category_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/calender_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/modify_doctor_advice_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/modify_family_advice_screen.dart';
+import 'package:day_in_bloom_fd_v1/features/healthreport/screen/pdf_report_viewer_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/report_category_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/report_doctor_advice_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/healthreport/screen/report_exercise_screen.dart';
@@ -95,6 +97,24 @@ final GoRouter appRouter = GoRouter(
                     ),                                                       
                   ]
                 ),
+                GoRoute(
+                  path: 'ago30plusReport',
+                  pageBuilder: (context, state) => NoTransitionPage(child: Ago30plusReportCategoryScreen()),
+                  routes: [
+                    GoRoute(
+                      path: 'familyAdvice',
+                      pageBuilder: (context, state) => NoTransitionPage(child: ReportFamilyAdviceScreen()),
+                    ),
+                    GoRoute(
+                      path: 'doctorAdvice',
+                      pageBuilder: (context, state) => NoTransitionPage(child: ReportDoctorAdviceScreen()),
+                    ),   
+                    GoRoute(
+                      path: 'pdfReportViewer',
+                      pageBuilder: (context, state) => NoTransitionPage(child: PdfReportViewerScreen()),
+                    ),                                                     
+                  ]
+                ),   
               ],
             ),
           ],

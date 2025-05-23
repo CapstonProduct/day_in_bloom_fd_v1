@@ -48,6 +48,8 @@ dependencies:
   kakao_flutter_sdk_user: ^1.9.7+3
   kakao_flutter_sdk: ^1.9.7+3
   flutter_dotenv: ^5.2.1
+  permission_handler: ^12.0.0+1
+  easy_pdf_viewer: ^1.0.8
 
 flutter_native_splash:
   android: true

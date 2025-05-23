@@ -73,6 +73,7 @@ class _ReportCategoryScreenState extends State<ReportCategoryScreen> {
   Widget build(BuildContext context) {
     final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '';
     final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
+    final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'] ?? '';
 
     return Scaffold(
       appBar: CustomAppBar(title: '$elderlyName 어르신 건강 리포트', showBackButton: true),
@@ -133,7 +134,7 @@ class _ReportCategoryScreenState extends State<ReportCategoryScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    const PdfDownloadButtons(),
+                    PdfDownloadButtons(encodedId: encodedId),
                   ],
                 ),
               );
@@ -345,10 +346,13 @@ class ScoreReportCategoryTile extends StatelessWidget {
 }
 
 class PdfDownloadButtons extends StatelessWidget {
-  const PdfDownloadButtons({super.key});
+  final String encodedId;
+  const PdfDownloadButtons({super.key, required this.encodedId});
 
   @override
   Widget build(BuildContext context) {
+    final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '';
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -357,7 +361,7 @@ class PdfDownloadButtons extends StatelessWidget {
             title: '리포트 PDF\n다운로드\n(모두)',
             color: Colors.green.shade100,
             imagePath: 'assets/report_icon/green_pdf.png',
-            onTap: () => PdfDownloadModal.show(context),
+            onTap: () => PdfDownloadModal.show(context, selectedDate, encodedId),
           ),
         ),
         const SizedBox(width: 16),
@@ -367,7 +371,7 @@ class PdfDownloadButtons extends StatelessWidget {
             color: Colors.blue.shade100,
             imagePath: 'assets/report_icon/excel.png',
             onTap: () async {
-              bool? result = await PdfDownloadModal.show(context);
+              final result = await PdfDownloadModal.show(context, selectedDate, encodedId);
               if (result == true) {
                 PdfDoctorCodeModal.show(context);
               }
@@ -378,7 +382,6 @@ class PdfDownloadButtons extends StatelessWidget {
     );
   }
 }
-
 
 class PdfDownloadButton extends StatelessWidget {
   final String title;
