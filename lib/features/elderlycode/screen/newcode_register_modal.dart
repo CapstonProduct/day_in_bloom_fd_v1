@@ -49,40 +49,45 @@ class NewCodeRegisterModal extends StatelessWidget {
         TextButton(
           onPressed: () async {
             final inputCode = codeController.text.trim();
-            final userId = await KakaoAuthService.getUserId();
+            final kakaoUserId = await KakaoAuthService.getUserId();
+            final serverAccessToken = await KakaoAuthService.getServerAccessToken();
 
-            if (userId == null || inputCode.isEmpty) {
-              print("입력값 누락: userId 또는 code");
+            if (inputCode.isEmpty || kakaoUserId == null || serverAccessToken == null) {
+              print("입력값 누락 또는 인증 정보 없음");
               Navigator.pop(context);
               return;
             }
 
+            final rootUrl = dotenv.env['ROOT_API_GATEWAY_URL'];
+            if (rootUrl == null || rootUrl.isEmpty) {
+              print("ROOT_API_GATEWAY_URL 누락");
+              Navigator.pop(context);
+              return;
+            }
+
+            final apiUrl = Uri.parse('$rootUrl/$kakaoUserId/seniors');
             final body = {
-              "kakao_user_id": userId,
-              "encodedId": inputCode,
+              "seniors": [inputCode],
             };
-
-            final url = dotenv.env['NEWCODE_REGISTER_API_GATEWAY_URL'];
-            if (url == null || url.isEmpty) {
-              print("API URL 누락됨");
-              Navigator.pop(context);
-              return;
-            }
 
             try {
               final prettyJson = const JsonEncoder.withIndent('  ').convert(body);
               print("전송할 JSON:\n$prettyJson");
 
-              final response = await http.post(
-                Uri.parse(url),
-                headers: {"Content-Type": "application/json"},
+              final response = await http.put(
+                apiUrl,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": "Basic $serverAccessToken",
+                },
                 body: jsonEncode(body),
               );
 
-              if (response.statusCode == 200) {
-                print("등록 성공");
+              if (response.statusCode == 201) {
+                print("어르신 등록 성공");
               } else {
                 print("등록 실패: ${response.statusCode}");
+                print("응답 본문: ${response.body}");
               }
             } catch (e) {
               print("API 호출 오류: $e");
