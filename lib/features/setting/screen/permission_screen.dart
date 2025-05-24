@@ -15,8 +15,7 @@ class PermissionScreen extends StatefulWidget {
 class _PermissionScreenState extends State<PermissionScreen> {
   late Future<Map<String, bool>> _alertPermissions;
 
-  final String getPermissionUrl = dotenv.env['GET_PERMISSION_API_GATEWAY_URL']!;
-  final String updatePermissionUrl = dotenv.env['UPDATE_PERMISSION_API_GATEWAY_URL']!;
+  final String rootUrl = dotenv.env['ROOT_API_GATEWAY_URL']!;
 
   @override
   void initState() {
@@ -26,22 +25,22 @@ class _PermissionScreenState extends State<PermissionScreen> {
 
   Future<Map<String, bool>> fetchAlertPermissions() async {
     final kakaoUserId = await KakaoAuthService.getUserId();
+    final token = await KakaoAuthService.getServerAccessToken();
     if (kakaoUserId == null) throw Exception('사용자 ID를 불러올 수 없습니다.');
 
-    final body = {'kakao_user_id': kakaoUserId};
-    debugPrint("알림 권한 요청:\n${jsonEncode(body)}");
+    final url = Uri.parse('$rootUrl/$kakaoUserId/alerts'); // ✅ 여기 alerts 붙음!
+    debugPrint("요청 URL: $url");
 
-    final response = await http.post(
-      Uri.parse(getPermissionUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
+    final response = await http.get(url, headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Basic $token',
+    });
 
     final responseBody = utf8.decode(response.bodyBytes);
-    debugPrint("응답 본문:\n$responseBody");
+    debugPrint("알림 조회 응답:\n$responseBody");
 
     if (response.statusCode != 200) {
-      throw Exception('알림 데이터를 불러오지 못했습니다.');
+      throw Exception('알림 데이터를 불러오지 못했습니다. 상태코드: ${response.statusCode}');
     }
 
     final List<dynamic> alerts = jsonDecode(responseBody)['alerts'];
@@ -54,19 +53,24 @@ class _PermissionScreenState extends State<PermissionScreen> {
 
   Future<void> updateAlert(String alertType, bool isEnabled) async {
     final kakaoUserId = await KakaoAuthService.getUserId();
+    final token = await KakaoAuthService.getServerAccessToken();
+    
     if (kakaoUserId == null) return;
 
+    final url = Uri.parse('$rootUrl/$kakaoUserId/alerts');
     final body = {
-      'kakao_user_id': kakaoUserId,
       'alert_type': alertType,
       'is_enabled': isEnabled,
     };
 
     debugPrint("알림 수정 요청:\n${jsonEncode(body)}");
 
-    final response = await http.post(
-      Uri.parse(updatePermissionUrl),
-      headers: {'Content-Type': 'application/json'},
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": "Basic $token",
+      },
       body: jsonEncode(body),
     );
 
@@ -112,6 +116,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
       appBar: const CustomAppBar(title: '알림 설정', showBackButton: true),
       body: RefreshIndicator(
         onRefresh: _refresh,
+        color: Colors.green,
         child: FutureBuilder<Map<String, bool>>(
           future: _alertPermissions,
           builder: (context, snapshot) {
