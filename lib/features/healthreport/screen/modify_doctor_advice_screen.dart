@@ -60,7 +60,7 @@ class _ModifyDoctorAdviceScreenState extends State<ModifyDoctorAdviceScreen> {
 
     final reportDate = reportDateRaw!.replaceAll(' ', '').replaceAll('/', '-');
     final kakaoUserId = await KakaoAuthService.getUserId();
-    final uri = Uri.parse('$baseUrl/advice/own?encodedId=$encodedId&report_date=$reportDate&kakao_user_id=$kakaoUserId');
+    final uri = Uri.parse('$baseUrl/advice/own?encodedId=$encodedId&report_date=$reportDate&kakao_user_id=$kakaoUserId&role=doctor');
 
     try {
       final response = await http.get(uri, headers: {
