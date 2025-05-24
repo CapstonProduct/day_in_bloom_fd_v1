@@ -119,48 +119,59 @@ class _HomeCodeScreenState extends State<HomeCodeScreen> {
   }
 
   Future<void> _removeElderly(String encodedId) async {
-    print("삭제 요청 ID: $encodedId");
+    print("🔽 삭제 요청 시작 - encodedId (senior_id): $encodedId");
 
     final kakaoUserId = await KakaoAuthService.getUserId();
-    if (kakaoUserId == null) {
-      print("사용자 ID를 불러올 수 없습니다.");
+    final serverAccessToken = await KakaoAuthService.getServerAccessToken();
+
+    if (kakaoUserId == null || serverAccessToken == null) {
+      print("❌ 사용자 ID 또는 서버 액세스 토큰을 불러올 수 없습니다.");
       return;
     }
 
-    final body = {
-      "kakao_user_id": kakaoUserId,
-      "encodedId": encodedId,
-    };
-
-    final url = dotenv.env['REMOVE_ELDERLY_MAPPING_API_GATEWAY_URL'];
-
-    if (url == null || url.isEmpty) {
-      print(".env에서 REMOVE_ELDERLY_MAPPING_API_GATEWAY_URL 설정이 없습니다.");
+    final baseUrl = dotenv.env['ROOT_API_GATEWAY_URL'];
+    if (baseUrl == null || baseUrl.isEmpty) {
+      print("❌ .env에서 ROOT_API_GATEWAY_URL 설정을 찾을 수 없습니다.");
       return;
     }
 
-    print("보내는 데이터:\n${const JsonEncoder.withIndent('  ').convert(body)}");
+    final deleteUrl = Uri.parse('$baseUrl/$kakaoUserId/seniors/$encodedId');
+
+    print("📤 DELETE 요청 URL: $deleteUrl");
+    print("📤 Authorization 헤더: Basic $serverAccessToken");
 
     try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(body),
+      final response = await http.delete(
+        deleteUrl,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Basic $serverAccessToken",
+        },
       );
 
-      final responseBody = utf8.decode(response.bodyBytes);
-      print("응답 상태 코드: ${response.statusCode}");
-      print("응답 본문: $responseBody");
+      print("📥 응답 상태 코드: ${response.statusCode}");
+      if (response.body.isNotEmpty) {
+        print("📥 응답 본문:\n${utf8.decode(response.bodyBytes)}");
+      } else {
+        print("📥 응답 본문 없음 (204 등)");
+      }
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 204) {
+        print("✅ 삭제 성공 - 리스트에서 제거");
         setState(() {
           elderlyList.removeWhere((elderly) => elderly["encodedId"] == encodedId);
         });
       } else {
-        print("삭제 실패: ${response.statusCode}");
+        print("❌ 삭제 실패 - 상태 코드: ${response.statusCode}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("삭제 실패: ${response.statusCode}")),
+        );
       }
     } catch (e) {
-      print("삭제 API 호출 중 오류 발생: $e");
+      print("❗ 삭제 API 호출 중 오류 발생: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("삭제 중 오류가 발생했습니다.")),
+      );
     }
   }
 
