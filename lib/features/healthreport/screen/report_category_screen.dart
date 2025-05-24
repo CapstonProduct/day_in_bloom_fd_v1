@@ -286,16 +286,21 @@ class ReportCategoryTile extends StatelessWidget {
   final ReportCategory category;
   final bool isHighlighted;
 
-  const ReportCategoryTile({super.key, required this.category, required this.isHighlighted});
+  const ReportCategoryTile({
+    super.key,
+    required this.category,
+    required this.isHighlighted,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '';
+    final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
+    final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'] ?? '';
+
     return GestureDetector(
       onTap: () {
-        final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '';
-        final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
-        final String encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'] ?? '';
-        context.go('${category.route}?date=$selectedDate&name=$elderlyName&encodedId=$encodedId'); 
+        context.go('${category.route}?date=$selectedDate&name=$elderlyName&encodedId=$encodedId');
       },
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -316,21 +321,38 @@ class ReportCategoryTile extends StatelessWidget {
               alignment: Alignment.bottomRight,
               child: Image.asset(category.imagePath, width: 60, height: 60),
             ),
-            if (category.title.contains('조언')) 
+
+            if (category.title.contains('조언'))
               Positioned(
                 top: 8,
                 right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade300,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '수정',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                child: InkWell(
+                  onTap: () {
+                    String targetRoute;
+
+                    if (category.title.contains('보호자')) {
+                      targetRoute = '/homeElderlyList/calendar/report/familyAdvice/modifyFamilyAdvice';
+                    } else if (category.title.contains('의사')) {
+                      targetRoute = '/homeElderlyList/calendar/report/doctorAdvice/modifyDoctorAdvice';
+                    } else {
+                      return;
+                    }
+
+                    context.go('$targetRoute?date=$selectedDate&name=$elderlyName&encodedId=$encodedId');
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade300,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '수정',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                 ),

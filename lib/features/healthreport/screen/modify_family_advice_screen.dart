@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
 
 class ModifyFamilyAdviceScreen extends StatefulWidget {
   const ModifyFamilyAdviceScreen({super.key});
@@ -11,17 +15,31 @@ class ModifyFamilyAdviceScreen extends StatefulWidget {
 
 class _ModifyFamilyAdviceScreenState extends State<ModifyFamilyAdviceScreen> {
   late TextEditingController _adviceController;
-  final String defaultAdvice = "요즘 건강은 어떠세요? 날씨도 변덕스럽고 피곤하시진 않으신지 걱정돼요.\n"
-      "밥은 잘 챙겨 드시고 계시죠? 바쁘시더라도 끼니 거르지 마시고, 몸에 좋은 음식도 꼭 챙겨 드세요!\n"
-      "무리하지 마시고 가끔은 여유도 가지셨으면 좋겠어요.\n"
-      "하루에 잠깐이라도 가벼운 운동하시고, 물도 자주 드세요.\n"
-      "무엇보다 스트레스 받지 않고 편하게 지내셨으면 해요.\n"
-      "부모님께서 건강하셔야 저도 마음이 놓이니까요. 항상 사랑하고, 오래오래 함께해요! 💕";
+  bool _isLoading = true;
+  bool _isSubmitting = false;
+  bool _isInitialized = false;
+
+  String? encodedId;
+  String? reportDateRaw;
+  String? elderlyName;
 
   @override
   void initState() {
     super.initState();
-    _adviceController = TextEditingController(text: defaultAdvice);
+    _adviceController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final params = GoRouterState.of(context).uri.queryParameters;
+      encodedId = params['encodedId'];
+      reportDateRaw = params['date'];
+      elderlyName = params['name'] ?? '어르신';
+      _fetchExistingAdvice();
+      _isInitialized = true;
+    }
   }
 
   @override
@@ -30,59 +48,149 @@ class _ModifyFamilyAdviceScreenState extends State<ModifyFamilyAdviceScreen> {
     super.dispose();
   }
 
+  Future<void> _fetchExistingAdvice() async {
+    final baseUrl = dotenv.env['ROOT_API_GATEWAY_URL'];
+
+    if (encodedId == null || reportDateRaw == null || baseUrl == null || baseUrl.isEmpty) {
+      print("필수 파라미터 또는 API URL 누락");
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final reportDate = reportDateRaw!.replaceAll(' ', '').replaceAll('/', '-');
+    final uri = Uri.parse('$baseUrl/advice?encodedId=$encodedId&report_date=$reportDate&role=guardian');
+
+    try {
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final content = jsonDecode(utf8.decode(response.bodyBytes))['content'] ?? '';
+        _adviceController.text = content.contains("조언이 없습니다") ? '' : content;
+      } else {
+        print('기존 조언 불러오기 실패: ${response.statusCode}');
+      }
+    } catch (e, stack) {
+      print('조언 로드 중 오류: $e');
+      print(stack);
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _submitAdvice() async {
+    final serverAccessToken = await KakaoAuthService.getServerAccessToken();
+    if (serverAccessToken == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("인증 정보를 불러올 수 없습니다.")),
+      );
+      return;
+    }
+
+    final baseUrl = dotenv.env['ROOT_API_GATEWAY_URL'];
+    if (baseUrl == null || baseUrl.isEmpty || encodedId == null || reportDateRaw == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("필수 정보가 누락되었습니다.")),
+      );
+      return;
+    }
+
+    final reportDate = reportDateRaw!.replaceAll(' ', '').replaceAll('/', '-');
+    final uri = Uri.parse('$baseUrl/advice');
+    final body = {
+      "encodedId": encodedId,
+      "report_date": reportDate,
+      "role": "guardian",
+      "content": _adviceController.text.trim(),
+    };
+
+    print('--- PUT 요청 디버깅 ---');
+    print('PUT URL: $uri');
+    print('PUT Body: ${jsonEncode(body)}');
+    print('PUT Header: Authorization: Basic $serverAccessToken');
+
+    setState(() => _isSubmitting = true);
+    try {
+      final response = await http.put(
+        uri,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Basic $serverAccessToken",
+        },
+        body: jsonEncode(body),
+      );
+
+      print('응답 상태: ${response.statusCode}');
+      print('응답 내용: ${response.body}');
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("조언이 저장되었습니다.")),
+        );
+        context.go(
+          '/homeElderlyList/calendar/report/familyAdvice'
+          '?date=$reportDateRaw&name=$elderlyName&encodedId=$encodedId',
+        );
+      } else {
+        print("조언 저장 실패: ${response.body}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("저장 실패: ${response.statusCode}")),
+        );
+      }
+    } catch (e) {
+      print("예외 발생: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("서버 통신 중 오류가 발생했습니다.")),
+      );
+    } finally {
+      setState(() => _isSubmitting = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '날짜 없음';
-    final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
-    final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'];
+    final displayedDate = reportDateRaw ?? '날짜 없음';
+    final name = elderlyName ?? '어르신';
 
     return Scaffold(
       appBar: CustomAppBar(title: "조언 수정하기"),
-      body: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text("사랑하는 부모님께 드릴 조언을 수정하세요!", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
-            SizedBox(height: 10),
-            Text("$elderlyName 어르신", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54)),
-            Text("[ $selectedDate ]", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54)),            
-            SizedBox(height: 15),
-            TextField(
-              controller: _adviceController,
-              maxLines: 15,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.green),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.green, width: 2.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.green, width: 2.5),
-                ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          : Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("사랑하는 부모님께 드릴 조언을 수정하세요!",
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
+                  const SizedBox(height: 10),
+                  Text("$name 어르신", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54)),
+                  Text("[ $displayedDate ]", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54)),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _adviceController,
+                    maxLines: 15,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(borderSide: BorderSide(color: Colors.green)),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
+                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.5)),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  _isSubmitting
+                      ? const CircularProgressIndicator(color: Colors.green)
+                      : ElevatedButton(
+                          onPressed: _submitAdvice,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.green,
+                            side: const BorderSide(color: Colors.green, width: 2),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 15),
+                          ),
+                          child: const Text('수정 완료', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        ),
+                ],
               ),
             ),
-            SizedBox(height: 15),
-            ElevatedButton(
-              onPressed: () {
-                context.go('/homeElderlyList/calendar/report/familyAdvice?date=$selectedDate&name=$elderlyName&encodedId=$encodedId');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.green,
-                side: const BorderSide(color: Colors.green, width: 2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 15),
-              ),
-              child: const Text(
-                '수정 완료', 
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
