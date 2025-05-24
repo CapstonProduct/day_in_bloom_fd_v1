@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class PdfDoctorCodeModal {
-  static void show(BuildContext context) {
+class ExcelDoctorCodeModal {
+  static void show(BuildContext context, String reportDate, String encodedId) {
     TextEditingController codeController = TextEditingController();
 
     showDialog(
@@ -9,12 +9,12 @@ class PdfDoctorCodeModal {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.white, // 배경색을 흰색으로 설정
+          backgroundColor: Colors.white, 
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           title: const Text(
-            '건강 리포트 PDF 다운로드',
+            '로우 데이터 엑셀 다운로드',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -59,7 +59,7 @@ class PdfDoctorCodeModal {
                 String enteredCode = codeController.text.trim();
                 if (_isValidCode(enteredCode)) {
                   Navigator.of(context).pop();
-                  _downloadPdf();
+                  _downloadExcel();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -97,7 +97,7 @@ class PdfDoctorCodeModal {
     return code == "DOCTOR123";
   }
 
-  static void _downloadPdf() {
-    debugPrint("PDF 다운로드 시작...");
+  static void _downloadExcel() {
+    debugPrint("엑셀 다운로드 시작...");
   }
 }

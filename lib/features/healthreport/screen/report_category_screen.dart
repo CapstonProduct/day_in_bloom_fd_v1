@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
+import 'package:day_in_bloom_fd_v1/features/healthreport/screen/excel_download_modal.dart';
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -7,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'pdf_download_modal.dart';
-import 'pdf_doctor_code_modal.dart';
+import 'excel_doctor_code_modal.dart';
 
 class ReportCategoryScreen extends StatefulWidget {
   const ReportCategoryScreen({super.key});
@@ -414,11 +415,8 @@ class PdfDownloadButtons extends StatelessWidget {
             title: '로우데이터\n엑셀 파일\n다운로드\n(의사)',
             color: Colors.blue.shade100,
             imagePath: 'assets/report_icon/excel.png',
-            onTap: () async {
-              final result = await PdfDownloadModal.show(context, selectedDate, encodedId);
-              if (result == true) {
-                PdfDoctorCodeModal.show(context);
-              }
+            onTap: () {
+              ExcelDownloadModal.show(context, selectedDate, encodedId);
             },
           ),
         ),
