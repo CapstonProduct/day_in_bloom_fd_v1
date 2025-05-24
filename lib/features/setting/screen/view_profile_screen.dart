@@ -24,26 +24,29 @@ class _ViewProfileScreenState extends State<ViewProfileScreen> {
 
   Future<Map<String, dynamic>> _fetchProfile() async {
     final kakaoUserId = await KakaoAuthService.getUserId();
+    final serverAccessToken = await KakaoAuthService.getServerAccessToken();
 
-    if (kakaoUserId == null) {
-      throw Exception("사용자 ID를 불러올 수 없습니다.");
+    if (kakaoUserId == null || serverAccessToken == null) {
+      throw Exception("사용자 ID 또는 액세스 토큰을 불러올 수 없습니다.");
     }
 
-    final url = dotenv.env['VIEW_PROFILE_API_GATEWAY_URL'];
-    if (url == null || url.isEmpty) {
-      throw Exception("VIEW_PROFILE_API_GATEWAY_URL이 .env에 설정되지 않았습니다.");
+    final baseUrl = dotenv.env['ROOT_API_GATEWAY_URL'];
+    if (baseUrl == null || baseUrl.isEmpty) {
+      throw Exception("ROOT_API_GATEWAY_URL이 .env에 설정되지 않았습니다.");
     }
 
-    final body = {"kakao_user_id": kakaoUserId};
-    debugPrint("전송할 데이터:\n${const JsonEncoder.withIndent('  ').convert(body)}");
+    final url = Uri.parse('$baseUrl/$kakaoUserId');
+    debugPrint("API 요청 URL: $url");
 
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(body),
+    final response = await http.get(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Basic $serverAccessToken",
+      },
     );
 
-    final responseBody = utf8.decode(response.bodyBytes); 
+    final responseBody = utf8.decode(response.bodyBytes);
     debugPrint("응답 상태: ${response.statusCode}");
     debugPrint("응답 본문: $responseBody");
 
