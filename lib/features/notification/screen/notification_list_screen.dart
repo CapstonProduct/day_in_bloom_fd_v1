@@ -27,47 +27,49 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     setState(() => _isLoading = true);
 
     final kakaoUserId = await KakaoAuthService.getUserId();
-    if (kakaoUserId == null) {
-      debugPrint("사용자 ID를 불러올 수 없습니다.");
+    final serverAccessToken = await KakaoAuthService.getServerAccessToken();
+
+    if (kakaoUserId == null || serverAccessToken == null) {
+      debugPrint("사용자 ID 또는 토큰을 불러올 수 없습니다.");
       setState(() => _isLoading = false);
       return;
     }
 
-    final apiUrl = dotenv.env['NOTIFICATION_LIST_API_URL'];
-    if (apiUrl == null || apiUrl.isEmpty) {
-      debugPrint(".env에서 NOTIFICATION_LIST_API_URL 설정이 누락됨");
+    final baseUrl = dotenv.env['ROOT_API_GATEWAY_URL'];
+    if (baseUrl == null || baseUrl.isEmpty) {
+      debugPrint(".env에서 ROOT_API_GATEWAY_URL 설정이 누락됨");
       setState(() => _isLoading = false);
       return;
     }
 
-    final body = {"kakao_user_id": kakaoUserId};
-    debugPrint("전송할 데이터:\n${const JsonEncoder.withIndent('  ').convert(body)}");
+    final fullUrl = Uri.parse('$baseUrl/$kakaoUserId/notifications');
+    debugPrint("요청 URL: $fullUrl");
 
     try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(body),
+      final response = await http.get(
+        fullUrl,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Basic $serverAccessToken",
+        },
       );
-
-      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-      debugPrint("응답 데이터: $decoded");
 
       if (response.statusCode == 200) {
         final List<Map<String, dynamic>> notifications = [];
+        final List<dynamic> decoded = jsonDecode(utf8.decode(response.bodyBytes));
 
-        decoded.forEach((key, value) {
-          final username = value['username'];
-          final originalMessage = value['message'];
+        for (var userData in decoded) {
+          final String username = userData['username'] ?? '알 수 없음';
+          final List<dynamic> userNotifications = userData['notifications'] ?? [];
 
-          final message = '$username 어르신의 $originalMessage';
-
-          notifications.add({
-            'text': message,
-            'isRead': false,
-            'createdTime': value['sent_at'],
-          });
-        });
+          for (var notification in userNotifications) {
+            notifications.add({
+              'text': '$username 어르신의 ${notification['message']}',
+              'isRead': notification['is_read'] ?? false,
+              'createdTime': notification['sent_at'] ?? '',
+            });
+          }
+        }
 
         setState(() {
           _notifications = notifications;
