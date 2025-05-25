@@ -19,33 +19,41 @@ class AccountWithdrawModal extends StatelessWidget {
 
   Future<void> _handleWithdraw(BuildContext context) async {
     final kakaoUserId = await KakaoAuthService.getUserId();
+    final serverAccessToken = await KakaoAuthService.getServerAccessToken();
 
-    if (kakaoUserId == null) {
-      debugPrint('사용자 ID를 가져올 수 없습니다.');
+    if (kakaoUserId == null || serverAccessToken == null) {
+      debugPrint('사용자 ID 또는 토큰을 가져올 수 없습니다.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('사용자 정보를 확인할 수 없습니다.')),
+      );
       return;
     }
 
-    final url = dotenv.env['ACCOUNT_WITHDRAW_MODAL_API_URL'];
-    if (url == null || url.isEmpty) {
-      debugPrint('.env에 ACCOUNT_WITHDRAW_MODAL_API_URL이 설정되지 않았습니다.');
+    final baseUrl = dotenv.env['ROOT_API_GATEWAY_URL'];
+    if (baseUrl == null || baseUrl.isEmpty) {
+      debugPrint('.env에 ROOT_API_GATEWAY_URL이 설정되지 않았습니다.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('API 주소가 설정되지 않았습니다.')),
+      );
       return;
     }
 
-    final body = {"kakao_user_id": kakaoUserId};
-    debugPrint("탈퇴 요청 데이터:\n${const JsonEncoder.withIndent('  ').convert(body)}");
+    final deleteUrl = Uri.parse('$baseUrl/$kakaoUserId');
+    debugPrint('회원 탈퇴 요청 URL: $deleteUrl');
 
     try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(body),
+      final response = await http.delete(
+        deleteUrl,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Basic $serverAccessToken",
+        },
       );
 
-      final responseBody = utf8.decode(response.bodyBytes);
-      debugPrint("탈퇴 응답 상태: ${response.statusCode}");
-      debugPrint("탈퇴 응답 본문: $responseBody");
+      debugPrint('응답 상태: ${response.statusCode}');
+      debugPrint('응답 본문: ${response.body}');
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 204) {
         await KakaoAuthService.logout();
         if (context.mounted) {
           context.go('/login');
@@ -56,7 +64,7 @@ class AccountWithdrawModal extends StatelessWidget {
         );
       }
     } catch (e) {
-      debugPrint("탈퇴 요청 중 오류 발생: $e");
+      debugPrint('네트워크 오류 발생: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('네트워크 오류: $e')),
       );
