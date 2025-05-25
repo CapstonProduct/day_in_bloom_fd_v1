@@ -105,6 +105,10 @@ class ReportCategoryTile extends StatelessWidget {
         final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '';
         final elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
         final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'] ?? '';
+        debugPrint('[CHECK] 이동 전 파라미터');
+        debugPrint('selectedDate: $selectedDate');
+        debugPrint('elderlyName: $elderlyName');
+        debugPrint('encodedId: $encodedId');
         context.go('${category.route}?date=$selectedDate&name=$elderlyName&encodedId=$encodedId');
       },
       child: Container(

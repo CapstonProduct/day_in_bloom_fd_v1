@@ -52,7 +52,7 @@ final GoRouter appRouter = GoRouter(
               pageBuilder: (context, state) => NoTransitionPage(child: NotificationListScreen()),
             ),      
             GoRoute(
-              path: '/calendar',
+              path: 'calendar',
               pageBuilder: (context, state) => NoTransitionPage(child: CalendarScreen()),
               routes: [
                 GoRoute(

@@ -48,7 +48,8 @@ class _ReportDoctorAdviceScreenState extends State<ReportDoctorAdviceScreen> {
     });
 
     if (response.statusCode != 200) {
-      throw Exception('API 호출 실패: ${response.body}');
+      debugPrint("조언 API 실패: ${response.body}");
+      return [];
     }
 
     final decoded = jsonDecode(utf8.decode(response.bodyBytes));
@@ -84,7 +85,13 @@ class _ReportDoctorAdviceScreenState extends State<ReportDoctorAdviceScreen> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator(color: Colors.green));
             } else if (snapshot.hasError) {
-              return Center(child: Text("오류 발생: ${snapshot.error}"));
+              return const Center(
+                child: Text(
+                  "해당 날짜에 등록된 조언이 없거나\n네트워크가 불안정합니다.",
+                  style: TextStyle(fontSize: 16, color: Colors.black87),
+                  textAlign: TextAlign.center,
+                ),
+              );
             }
 
             final adviceList = snapshot.data ?? [];
