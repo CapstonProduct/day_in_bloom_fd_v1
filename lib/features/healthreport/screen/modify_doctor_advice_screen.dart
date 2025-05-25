@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
+import 'package:intl/intl.dart';
 
 class ModifyDoctorAdviceScreen extends StatefulWidget {
   const ModifyDoctorAdviceScreen({super.key});
@@ -81,7 +82,6 @@ class _ModifyDoctorAdviceScreenState extends State<ModifyDoctorAdviceScreen> {
     }
   }
 
-
   Future<void> _submitAdvice() async {
     final serverAccessToken = await KakaoAuthService.getServerAccessToken();
     if (serverAccessToken == null) {
@@ -99,20 +99,24 @@ class _ModifyDoctorAdviceScreenState extends State<ModifyDoctorAdviceScreen> {
       return;
     }
 
-    final reportDate = reportDateRaw!.replaceAll(' ', '').replaceAll('/', '-');
+    final formattedDate = _formattedDate(reportDateRaw);
+    if (formattedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("날짜 형식이 잘못되었습니다.")),
+      );
+      return;
+    }
+
     final uri = Uri.parse('$baseUrl/advice');
     final body = {
       "encodedId": encodedId,
-      "report_date": reportDate,
+      "report_date": formattedDate,
       "role": "doctor",
       "content": _adviceController.text.trim(),
     };
 
-    print('--- PUT 요청 디버깅 ---');
-    print('PUT URL: $uri');
-    print('PUT Body: ${jsonEncode(body)}');
-    print('PUT Header: Authorization: Basic $serverAccessToken');
-
+    print("📦 최종 전송 바디: ${jsonEncode(body)}");
+    
     setState(() => _isSubmitting = true);
     try {
       final response = await http.put(
@@ -124,31 +128,39 @@ class _ModifyDoctorAdviceScreenState extends State<ModifyDoctorAdviceScreen> {
         body: jsonEncode(body),
       );
 
-    print('응답 상태: ${response.statusCode}');
-    print('응답 내용: ${response.body}');
+      final decoded = utf8.decode(response.bodyBytes);
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("조언이 저장되었습니다.")),
         );
         context.go(
-          '/homeElderlyList/calendar/report/doctorAdvice'
-          '?date=$reportDateRaw&name=$elderlyName&encodedId=$encodedId',
+          '/homeElderlyList/calendar/report/doctorAdvice?date=$reportDateRaw&name=$elderlyName&encodedId=$encodedId',
         );
-      }
-      else {
-        print("조언 저장 실패: ${response.body}");
+      } else {
+        print("❌ 저장 실패: $decoded");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("저장 실패: ${response.statusCode}")),
         );
       }
     } catch (e) {
-      print("예외 발생: $e");
+      print("❌ 예외 발생: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("서버 통신 중 오류가 발생했습니다.")),
       );
     } finally {
       setState(() => _isSubmitting = false);
+    }
+  }
+
+  String? _formattedDate(String? raw) {
+    if (raw == null) return null;
+    try {
+      final cleaned = raw.replaceAll(' ', '').replaceAll('/', '-');
+      final parsed = DateTime.parse(cleaned);
+      return DateFormat('yyyy-MM-dd').format(parsed);
+    } catch (_) {
+      return null;
     }
   }
 

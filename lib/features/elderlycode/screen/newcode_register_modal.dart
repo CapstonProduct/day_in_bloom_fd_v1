@@ -12,7 +12,6 @@ class NewCodeRegisterModal extends StatefulWidget {
 }
 
 class _NewCodeRegisterModalState extends State<NewCodeRegisterModal> {
-  final TextEditingController codeController = TextEditingController();
   final TextEditingController validationCodeController = TextEditingController();
   String _selectedRole = 'guardian';
 
@@ -22,7 +21,7 @@ class _NewCodeRegisterModalState extends State<NewCodeRegisterModal> {
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       title: const Text(
-        "어르신 코드 등록",
+        "보호자 및 의사 인증",
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         textAlign: TextAlign.center,
       ),
@@ -30,21 +29,11 @@ class _NewCodeRegisterModalState extends State<NewCodeRegisterModal> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            "어르신 고유 코드를 입력하고\n역할을 선택해주세요.",
+            "어르신과 연결된\n보호자 및 의사용\n인증 코드를 입력하고\n역할을 선택하세요.",
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          TextField(
-            controller: codeController,
-            textAlign: TextAlign.center,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-              hintText: '어르신 코드 입력',
-            ),
-          ),
-          const SizedBox(height: 12),
           TextField(
             controller: validationCodeController,
             textAlign: TextAlign.center,
@@ -86,12 +75,11 @@ class _NewCodeRegisterModalState extends State<NewCodeRegisterModal> {
       actions: [
         TextButton(
           onPressed: () async {
-            final inputCode = codeController.text.trim();
             final validationCode = validationCodeController.text.trim();
             final kakaoUserId = await KakaoAuthService.getUserId();
             final serverAccessToken = await KakaoAuthService.getServerAccessToken();
 
-            if (inputCode.isEmpty || validationCode.isEmpty || kakaoUserId == null || serverAccessToken == null) {
+            if (validationCode.isEmpty || kakaoUserId == null || serverAccessToken == null) {
               print("❌ 입력값 누락 또는 인증 정보 없음");
               Navigator.pop(context);
               return;
@@ -106,7 +94,6 @@ class _NewCodeRegisterModalState extends State<NewCodeRegisterModal> {
 
             final apiUrl = Uri.parse('$rootUrl/$kakaoUserId/seniors');
             final requestBody = {
-              "senior_encodedId": inputCode,
               "associate_as": _selectedRole,
               "validation_code": validationCode,
             };
@@ -132,7 +119,7 @@ class _NewCodeRegisterModalState extends State<NewCodeRegisterModal> {
               print("❌ API 호출 오류: $e");
             }
 
-            Navigator.pop(context, inputCode);
+            Navigator.pop(context, validationCode);
           },
           child: const Text(
             "확인",
