@@ -55,6 +55,29 @@ class CalendarScreen extends StatelessWidget {
                         }
                       },
                     ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.teal),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '🌿 캘린더 마커의 의미',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '미션 1개 달성 → 씨앗\n미션 2개 달성 → 싹이 나온 씨앗\n미션 3개 달성 → 새싹\n미션 4개 달성 → 나뭇잎\n미션 5개 달성 → 꽃',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
