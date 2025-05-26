@@ -42,9 +42,7 @@ class _ReportExerciseScreenState extends State<ReportExerciseScreen> {
     }
 
     final uri = Uri.parse('$baseUrl/reports?encodedId=$encodedId&report_date=$formattedDate');
-    final headers = {
-      "Content-Type": "application/json",
-    };
+    final headers = {"Content-Type": "application/json"};
 
     final response = await http.get(uri, headers: headers);
 
@@ -59,6 +57,43 @@ class _ReportExerciseScreenState extends State<ReportExerciseScreen> {
     final sanitized = rawDate.replaceAll('/', '-').replaceAll(' ', '');
     final parsedDate = DateTime.parse(sanitized);
     return DateFormat('yyyy-MM-dd').format(parsedDate);
+  }
+
+  Future<String> _fetchGraphUrl(String graphType) async {
+    try {
+      final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'];
+      final rawDate = GoRouterState.of(context).uri.queryParameters['date'];
+
+      if (encodedId == null || rawDate == null) {
+        throw Exception("사용자 ID 또는 날짜가 없습니다.");
+      }
+
+      final cleaned = rawDate.replaceAll('/', '-').replaceAll(' ', '');
+      final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(cleaned));
+
+      final response = await http.post(
+        Uri.parse('https://hrag4ozp99.execute-api.ap-northeast-2.amazonaws.com/default/get-graph-report'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "encodedId": encodedId,
+          "report_date": formattedDate,
+          "graph_type": graphType
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception("그래프 이미지 URL 요청 실패: $graphType");
+      }
+
+      final result = jsonDecode(response.body);
+      final url = result['cleanedUrl'];
+      if (url == null) throw Exception("cleanedUrl이 응답에 없습니다: $graphType");
+      return url;
+    } catch (e, stack) {
+      print('[ERROR][$graphType] 예외 발생: $e');
+      print('[STACKTRACE] $stack');
+      rethrow;
+    }
   }
 
   Future<void> _refreshData() async {
@@ -111,6 +146,7 @@ class _ReportExerciseScreenState extends State<ReportExerciseScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(10),
@@ -121,14 +157,50 @@ class _ReportExerciseScreenState extends State<ReportExerciseScreen> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        'assets/remove_img/exercise_graph_ex.png',
-                        fit: BoxFit.cover,
+                      child: FutureBuilder<String>(
+                        future: _fetchGraphUrl('heartrate'),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+                          } else if (snapshot.hasError || !snapshot.hasData) {
+                            return const Text('심박수 그래프를 불러올 수 없습니다.');
+                          } else {
+                            return Image.network(snapshot.data!, fit: BoxFit.cover);
+                          }
+                        },
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 16),
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: primaryColor, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: FutureBuilder<String>(
+                        future: _fetchGraphUrl('steps_calories'),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+                          } else if (snapshot.hasError || !snapshot.hasData) {
+                            return const Text('걸음/칼로리 그래프를 불러올 수 없습니다.');
+                          } else {
+                            return Image.network(snapshot.data!, fit: BoxFit.cover);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+
                   const SizedBox(height: 20),
-                  _buildRowItem("평균 운동 시간", data['avg_exercise_time']?.toString() ?? '-'),
+                  _buildRowItem("평균 운동 시간", data['avg_exercise_time'] != null ? (data['avg_exercise_time'] as num).toStringAsFixed(1) : '-'),
                   _buildRowItem("평균 심박수", data['avg_heart_rate']?.toString() ?? '-'),
                   _buildRowItem("에너지 소모량", data['calories_burned']?.toString() ?? '-'),
                   const SizedBox(height: 20),

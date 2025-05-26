@@ -64,6 +64,43 @@ class _ReportSleepScreenState extends State<ReportSleepScreen> {
     });
   }
 
+  Future<String> _fetchSleepGraphUrl() async {
+    try {
+      final encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'];
+      final rawDate = GoRouterState.of(context).uri.queryParameters['date'];
+
+      if (encodedId == null || rawDate == null) {
+        throw Exception("사용자 ID 또는 날짜가 없습니다.");
+      }
+
+      final cleaned = rawDate.replaceAll('/', '-').replaceAll(' ', '');
+      final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(cleaned));
+
+      final response = await http.post(
+        Uri.parse('https://hrag4ozp99.execute-api.ap-northeast-2.amazonaws.com/default/get-graph-report'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "encodedId": encodedId,
+          "report_date": formattedDate,
+          "graph_type": "sleep"
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception("그래프 이미지 URL 요청 실패");
+      }
+
+      final result = jsonDecode(response.body);
+      final url = result['cleanedUrl'];
+      if (url == null) throw Exception("cleanedUrl이 응답에 없습니다.");
+      return url;
+    } catch (e, stack) {
+      print('[ERROR] 예외 발생: $e');
+      print('[STACKTRACE] $stack');
+      rethrow;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '날짜 없음';
@@ -117,9 +154,21 @@ class _ReportSleepScreenState extends State<ReportSleepScreen> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        'assets/remove_img/sleep_graph_ex.png',
-                        fit: BoxFit.cover,
+                      // child: Image.asset(
+                      //   'assets/remove_img/sleep_graph_ex.png',
+                      //   fit: BoxFit.cover,
+                      // ),
+                      child: FutureBuilder<String>(
+                        future: _fetchSleepGraphUrl(), // 이 함수 아래에 추가로 정의합니다
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+                          } else if (snapshot.hasError || !snapshot.hasData) {
+                            return const Text('그래프를 불러올 수 없습니다.');
+                          } else {
+                            return Image.network(snapshot.data!, fit: BoxFit.cover);
+                          }
+                        },
                       ),
                     ),
                   ),
