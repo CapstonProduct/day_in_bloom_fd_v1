@@ -25,8 +25,8 @@ import 'package:day_in_bloom_fd_v1/features/home/screen/home_elderly_list.dart';
 import 'package:day_in_bloom_fd_v1/features/home/screen/home_code_screen.dart';
 import 'package:day_in_bloom_fd_v1/features/home/screen/home_setting_screen.dart';
 
-final GoRouter appRouter = GoRouter(
-  initialLocation: '/login',
+GoRouter appRouter(String initialLocation) => GoRouter(
+  initialLocation: initialLocation,
   routes: [
     GoRoute( 
       path: '/login',

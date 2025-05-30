@@ -1,3 +1,4 @@
+import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
 import 'package:day_in_bloom_fd_v1/utils/router_without_animation.dart';
 import 'package:day_in_bloom_fd_v1/widgets/navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: "assets/.env");
   
+  await KakaoAuthService.clearIfNotAutoLogin();
+
   FlutterNativeSplash.remove;
   
   KakaoSdk.init(
@@ -24,20 +27,34 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      routerConfig: appRouter,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('ko', 'KR'),
-      ],
-      theme: ThemeData(
-        scaffoldBackgroundColor: Colors.white,
-      ),
+    return FutureBuilder<bool>(
+      future: KakaoAuthService.isLoggedIn(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const MaterialApp(
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
+          );
+        }
+
+        final initialLocation = snapshot.data! ? '/homeElderlyList' : '/login';
+
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          routerConfig: appRouter(initialLocation),
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('ko', 'KR'),
+          ],
+          theme: ThemeData(
+            scaffoldBackgroundColor: Colors.white,
+          ),
+        );
+      },
     );
   }
 }

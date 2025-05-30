@@ -37,8 +37,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   Future<void> _fetchMarkersFromServer() async {
     final encodedId = widget.encodedId; 
 
-    debugPrint('📌 [Calendar] 전달받은 encodedId: $encodedId');
-    
+    debugPrint('[Calendar] 전달받은 encodedId: $encodedId');
+
     if (encodedId.isEmpty) return;
 
     final uri = Uri.parse(
