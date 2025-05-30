@@ -10,6 +10,7 @@ class CalendarScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final String elderlyName = GoRouterState.of(context).uri.queryParameters['name'] ?? '어르신';
     final String encodedId = GoRouterState.of(context).uri.queryParameters['encodedId'] ?? '';
+    debugPrint('📌 [CalendarScreen] 받은 encodedId: $encodedId');
 
     return Scaffold(
       appBar: CustomAppBar(title: '$elderlyName 어르신 건강 캘린더'),
@@ -54,6 +55,7 @@ class CalendarScreen extends StatelessWidget {
                           context.go('/homeElderlyList/calendar/ago30plusReport?date=$formattedDate&name=$elderlyName&encodedId=$encodedId');
                         }
                       },
+                      encodedId: encodedId,
                     ),
                     const SizedBox(height: 20),
                     Container(

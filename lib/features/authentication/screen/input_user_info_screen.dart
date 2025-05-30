@@ -68,7 +68,6 @@ class _InputUserInfoScreenState extends State<InputUserInfoScreen> {
       );
 
       if (response.statusCode == 200) {
-        await KakaoAuthService.setUserInfoEntered();
         if (context.mounted) context.go('/homeElderlyList');
       } else {
         print("사용자 정보 업데이트 실패: ${response.statusCode}");

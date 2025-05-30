@@ -146,11 +146,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                      onPressed: () async {
                         try {
+                          // 수정 전
+                          // final result = await KakaoAuthService.loginWithKakao(autoLogin: _autoLogin);
+                          // final alreadyEntered = await KakaoAuthService.isUserInfoEntered();
+                          // if (!mounted) return;
+
+                          // if (!alreadyEntered) {
+                          //   context.go('/login/inputUserInfo');
+                          // } else {
+                          //   context.go('/homeElderlyList');
+                          // }
+
+                          // 수정 후
                           final result = await KakaoAuthService.loginWithKakao(autoLogin: _autoLogin);
-                          final alreadyEntered = await KakaoAuthService.isUserInfoEntered();
+                          final userInfoEntered = await KakaoAuthService.checkUserInfoEnteredFromServer();
+
+                          debugPrint("userInfoEntered: $userInfoEntered");
+
                           if (!mounted) return;
 
-                          if (!alreadyEntered) {
+                          if (!userInfoEntered) {
                             context.go('/login/inputUserInfo');
                           } else {
                             context.go('/homeElderlyList');

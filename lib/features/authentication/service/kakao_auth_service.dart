@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -103,14 +104,32 @@ class KakaoAuthService {
     return result == 'true';
   }
 
-  static Future<void> setUserInfoEntered() async {
-    await _storage.write(key: 'user_info_entered', value: 'true');
-  }
-
   static Future<void> clearIfNotAutoLogin() async {
     final autoLogin = await _storage.read(key: 'auto_login');
     if (autoLogin != 'true') {
       await logout();
     }
+  }
+
+  static Future<bool> checkUserInfoEnteredFromServer() async {
+    final userId = await _storage.read(key: 'user_id');
+    if (userId == null) return false;
+
+    final url = Uri.parse('https://1dzzkwh851.execute-api.ap-northeast-2.amazonaws.com/Prod/auth/checkUserInfo?kakao_user_id=$userId');
+    debugPrint("kakao_user_id: $userId");
+    
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['allEntered'] == true;
+      } else {
+        print("서버 응답 에러: ${response.statusCode} - ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("유저 정보 확인 API 호출 실패: $e");
+      return false;
+      }
   }
 }
