@@ -96,8 +96,8 @@ class _ReportCategoryScreenState extends State<ReportCategoryScreen> {
               }
 
               final data = snapshot.data!;
-              final overallHealthScore = int.tryParse(data['overall_health_score']?.toString() ?? '0') ?? 0;
-              final stressScore = int.tryParse(data['stress_score']?.toString() ?? '0') ?? 0;
+              final int overallHealthScore = (data['overall_health_score'] as num?)?.toInt() ?? 0;
+              final int stressScore = (data['stress_score'] as num?)?.toInt() ?? 0;
 
               final updatedCategories = [
                 _categories[0].copyWith(score: overallHealthScore),
@@ -127,7 +127,9 @@ class _ReportCategoryScreenState extends State<ReportCategoryScreen> {
                         final category = updatedCategories[index];
                         if (index == 0 || index == 1) {
                           return ScoreReportCategoryTile(
-                            category: category,
+                            category: category.copyWith(
+                              score: index == 0 ? ((overallHealthScore as num?)?.toInt() ?? 0) : ((stressScore as num?)?.toInt() ?? 0),
+                            ),
                             isHighlighted: index == 0,
                             color: index == 0 ? Colors.yellow.shade100 : Colors.grey.shade200,
                           );

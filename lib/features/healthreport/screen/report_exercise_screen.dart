@@ -102,6 +102,19 @@ class _ReportExerciseScreenState extends State<ReportExerciseScreen> {
     });
   }
 
+  String formatMinutes(dynamic value) {
+    if (value is! int && value is! double) return '-';
+    final int total = (value as num).toInt();
+    final hours = total ~/ 60;
+    final minutes = total % 60;
+    return hours > 0 ? '$hours시간 ${minutes}분' : '$minutes분';
+  }
+
+  String formatNumber(dynamic value, String unit) {
+    if (value == null) return '-';
+    return '${(value as num).toStringAsFixed(1)} $unit';
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '날짜 없음';
@@ -125,6 +138,11 @@ class _ReportExerciseScreenState extends State<ReportExerciseScreen> {
             }
 
             final data = snapshot.data!;
+            final totalActivityTime = formatMinutes(data['total_activity_time']);
+            final avgHeartRate = formatNumber(data['avg_heart_rate'], 'bpm');
+            final caloriesBurned = formatNumber(data['calories_burned'], '칼로리');
+            final analysis = data['exercise_gpt_analysis'] ?? '분석 데이터가 없습니다.';
+
 
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -200,9 +218,10 @@ class _ReportExerciseScreenState extends State<ReportExerciseScreen> {
                   ),
 
                   const SizedBox(height: 20),
-                  _buildRowItem("평균 운동 시간", data['avg_exercise_time'] != null ? (data['avg_exercise_time'] as num).toStringAsFixed(1) : '-'),
-                  _buildRowItem("평균 심박수", data['avg_heart_rate']?.toString() ?? '-'),
-                  _buildRowItem("에너지 소모량", data['calories_burned']?.toString() ?? '-'),
+                  _buildRowItem("총 운동 시간", totalActivityTime),
+                  _buildRowItem("평균 심박수", avgHeartRate),
+                  _buildRowItem("에너지 소모량", caloriesBurned),
+
                   const SizedBox(height: 20),
                   Container(
                     width: double.infinity,

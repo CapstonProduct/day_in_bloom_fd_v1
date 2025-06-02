@@ -90,15 +90,15 @@ class _ReportStressScoreScreenState extends State<ReportStressScoreScreen> {
             }
 
             final data = snapshot.data!;
-            final int stressScore = int.tryParse(data['stress_score']?.toString() ?? '0') ?? 0;
-            final String spo2Variation = '${data['spo2_variation'] ?? "0"} %';
-            final String sleepHeartRate = '${data['sleep_heart_rate'] ?? "0"} bpm';
-            final String sleepScore = '${data['sleep_score'] ?? "0"} 점';
+            final int stressScore = (data['stress_score'] as num?)?.toInt() ?? 0;
+            final String hrvContribution = '${((data['hrv_contribution'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(1)}%';
+            final String rhrContribution = '${((data['rhr_contribution'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(1)}%';
+            final String sleepContribution = '${((data['sleep_contribution'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(1)}%';
 
             final List<Map<String, String>> healthData = [
-              {'label': '예상 산소량 변화', 'value': spo2Variation},
-              {'label': '수면 중 심박수', 'value': sleepHeartRate},
-              {'label': '수면 스코어', 'value': sleepScore},
+              {'label': '심박변이도 기반 점수 기여도', 'value': hrvContribution},
+              {'label': '안정시 심박수 기반 점수 기여도', 'value': rhrContribution},
+              {'label': '수면 기반 점수 기여도', 'value': sleepContribution},
             ];
 
             return SingleChildScrollView(

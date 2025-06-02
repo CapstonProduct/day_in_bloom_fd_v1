@@ -113,15 +113,15 @@ class _ReportTotalScoreScreenState extends State<ReportTotalScoreScreen> {
             }
 
             final data = snapshot.data!;
-            final int totalScore = int.tryParse(data['overall_health_score']?.toString() ?? '0') ?? 0;
-            final String stress = '${data['stress_score']?.toString() ?? "0"} 점';
-            final String exercise = formatMinutes(data['total_exercise_time']);
-            final String sleep = formatMinutes(data['total_sleep_time']);
+            final totalScore = (data['overall_health_score'] as num?)?.toInt() ?? 0;
+            final String avgHeartRate = '${((data['avg_heart_rate'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(1)} bpm';
+            final String totalActivityTime = formatMinutes(data['total_activity_time']);
+            final String totalSleepTime = formatMinutes(data['total_sleep_time']);
 
             final List<Map<String, String>> healthData = [
-              {'label': '스트레스 점수', 'value': stress},
-              {'label': '운동 시간', 'value': exercise},
-              {'label': '수면 시간', 'value': sleep},
+              {'label': '평균 심박수', 'value': avgHeartRate},
+              {'label': '총 운동 시간', 'value': totalActivityTime},
+              {'label': '총 수면 시간', 'value': totalSleepTime},
             ];
 
             return SingleChildScrollView(

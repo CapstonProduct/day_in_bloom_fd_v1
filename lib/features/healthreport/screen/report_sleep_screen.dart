@@ -101,6 +101,14 @@ class _ReportSleepScreenState extends State<ReportSleepScreen> {
     }
   }
 
+  String formatMinutes(dynamic value) {
+    if (value == null) return '-';
+    final int total = (value as num).toInt();
+    final hours = total ~/ 60;
+    final minutes = total % 60;
+    return hours > 0 ? '$hours시간 ${minutes}분' : '$minutes분';
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedDate = GoRouterState.of(context).uri.queryParameters['date'] ?? '날짜 없음';
@@ -124,6 +132,10 @@ class _ReportSleepScreenState extends State<ReportSleepScreen> {
             }
 
             final data = snapshot.data!;
+            final String sleepScore = '${((data['sleep_score'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(1)} 점';
+            final String timeinBed = formatMinutes(data['timeinBed']);
+            final String minutesAsleep = formatMinutes(data['minutesAsleep']);
+
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16.0),
@@ -173,9 +185,10 @@ class _ReportSleepScreenState extends State<ReportSleepScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _buildRowItem("수면 스코어", data['sleep_score']?.toString() ?? '-'),
-                  _buildRowItem("예상 산소량 변화", data['spo2_variation']?.toString() ?? '-'),
-                  _buildRowItem("수면 중 심박수", data['sleep_heart_rate']?.toString() ?? '-'),
+                  _buildRowItem("수면 스코어", sleepScore),
+                  _buildRowItem("침대에 누워있던 시간", timeinBed),
+                  _buildRowItem("실제 수면 시간", minutesAsleep),
+
                   const SizedBox(height: 20),
                   Container(
                     width: double.infinity,
