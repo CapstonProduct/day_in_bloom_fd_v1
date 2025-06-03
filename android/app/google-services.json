@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "472830303078",
+    "project_id": "dayinbloom-4dde1",
+    "storage_bucket": "dayinbloom-4dde1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472830303078:android:0ed94f2069ea5facbd06a7",
+        "android_client_info": {
+          "package_name": "com.example.day_in_bloom_fd_v1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlKLbQgud9sUrXoU_w_AaVgGDMrFN0ZCk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472830303078:android:a23d7a968cbffcd0bd06a7",
+        "android_client_info": {
+          "package_name": "com.example.day_in_bloom_v1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlKLbQgud9sUrXoU_w_AaVgGDMrFN0ZCk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
