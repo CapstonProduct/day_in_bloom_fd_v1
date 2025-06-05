@@ -15,17 +15,48 @@ class InputUserInfoScreen extends StatefulWidget {
 class _InputUserInfoScreenState extends State<InputUserInfoScreen> {
   final Map<String, TextEditingController> _controllers = {
     "이름": TextEditingController(),
-    "생년월일": TextEditingController(),
     "주소": TextEditingController(),
     "전화번호": TextEditingController(),
   };
 
   String? _selectedGender;
+  DateTime? _selectedBirthDate;
   final List<String> _genders = ["남성", "여성"];
   static const primaryColor = Colors.teal;
 
+  Future<void> _selectBirthDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedBirthDate ?? DateTime(1990, 1, 1),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      locale: const Locale('ko', 'KR'),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: primaryColor,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedBirthDate) {
+      setState(() {
+        _selectedBirthDate = picked;
+      });
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
+
   Future<void> _onComplete() async {
-    if (_controllers.values.any((c) => c.text.trim().isEmpty) || _selectedGender == null) {
+    if (_controllers.values.any((c) => c.text.trim().isEmpty) || 
+        _selectedGender == null || 
+        _selectedBirthDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("모든 정보를 입력해주세요.")),
       );
@@ -42,7 +73,7 @@ class _InputUserInfoScreenState extends State<InputUserInfoScreen> {
 
     final body = {
       "username": _controllers["이름"]!.text.trim(),
-      "birth_date": _controllers["생년월일"]!.text.trim(),
+      "birth_date": _formatDate(_selectedBirthDate!),
       "gender": _selectedGender,
       "address": _controllers["주소"]!.text.trim(),
       "phone_number": _controllers["전화번호"]!.text.trim(),
@@ -124,6 +155,35 @@ class _InputUserInfoScreenState extends State<InputUserInfoScreen> {
                     ),
                   ),
                 ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: InkWell(
+                  onTap: () => _selectBirthDate(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[400]!),
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.grey[100],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _selectedBirthDate == null
+                              ? "생년월일"
+                              : _formatDate(_selectedBirthDate!),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: _selectedBirthDate == null ? Colors.grey[600] : Colors.black,
+                          ),
+                        ),
+                        const Icon(Icons.calendar_today, color: primaryColor),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: _selectedGender,
