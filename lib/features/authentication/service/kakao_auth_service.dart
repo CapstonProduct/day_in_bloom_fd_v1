@@ -1,3 +1,4 @@
+import 'package:day_in_bloom_fd_v1/utils/fcm_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
@@ -51,6 +52,9 @@ class KakaoAuthService {
           if (serverAccessToken != null) {
             await _storage.write(key: 'server_access_token', value: serverAccessToken);
             print("서버 access_token 저장 완료");
+
+            // 로그인 후 FCM 토큰 등록
+            await FCMService.init();
           }
           if (serverUserId != null) {
             await _storage.write(key: 'server_user_id', value: serverUserId.toString());
@@ -74,6 +78,8 @@ class KakaoAuthService {
   }
 
   static Future<void> logout() async {
+    await FCMService.deleteTokenFromLambda(); // 로그아웃 시 토큰 삭제
+    
     await _storage.deleteAll();
   }
 

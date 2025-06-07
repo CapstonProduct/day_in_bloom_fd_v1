@@ -1,4 +1,5 @@
 import 'package:day_in_bloom_fd_v1/features/authentication/screen/account_withdraw_modal.dart';
+import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
 import 'package:day_in_bloom_fd_v1/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,6 +11,7 @@ class LogoutCancelScreen extends StatelessWidget {
   Future<void> _logout(BuildContext context) async {
     final storage = FlutterSecureStorage();
 
+    KakaoAuthService.logout();
     await storage.deleteAll();
 
     if (context.mounted) {
