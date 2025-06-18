@@ -70,8 +70,6 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
           "assets/profile_icon/orange_profile.png",
           "assets/profile_icon/green_profile.png",
           "assets/profile_icon/red_profile.png",
-          "assets/profile_icon/blue_profile.png",
-          "assets/profile_icon/purple_profile.png",
         ];
 
         for (final senior in seniors) {
