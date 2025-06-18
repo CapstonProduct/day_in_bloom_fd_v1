@@ -135,7 +135,8 @@ class _ModifyFamilyAdviceScreenState extends State<ModifyFamilyAdviceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
-                    "가족으로서 어르신을 위한 조언을 남겨주세요",
+                    "가족으로서 어르신을 위한\n조언을 남겨주세요",
+                    textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
                   ),
                   const SizedBox(height: 10),
@@ -144,7 +145,7 @@ class _ModifyFamilyAdviceScreenState extends State<ModifyFamilyAdviceScreen> {
                   const SizedBox(height: 15),
                   TextField(
                     controller: _adviceController,
-                    maxLines: 15,
+                    maxLines: 10,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(borderSide: BorderSide(color: Colors.green)),
                       enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),

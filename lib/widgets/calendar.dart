@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:day_in_bloom_fd_v1/features/authentication/service/kakao_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
@@ -35,9 +34,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   }
 
   Future<void> _fetchMarkersFromServer() async {
-    final encodedId = widget.encodedId; 
-
-    debugPrint('[Calendar] 전달받은 encodedId: $encodedId');
+    final encodedId = widget.encodedId;
 
     if (encodedId.isEmpty) return;
 
@@ -82,7 +79,18 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('⛔ 2020/01/01 ~ 2060/12/31 사이의 날짜를 입력해주세요.')),
         );
-        parsedDate = parsedDate.isBefore(first) ? first : last;
+        return;
+      }
+
+      final key = DateFormat('yyyy-MM-dd').format(parsedDate);
+      final data = _markerMap[key];
+      final hasReport = data?['has_report'] ?? false;
+
+      if (!hasReport) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('⛔ 해당 날짜의 리포트가 없습니다.')),
+        );
+        return;
       }
 
       setState(() {
@@ -106,6 +114,17 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     );
 
     if (pickedDate != null) {
+      final key = DateFormat('yyyy-MM-dd').format(pickedDate);
+      final data = _markerMap[key];
+      final hasReport = data?['has_report'] ?? false;
+
+      if (!hasReport) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('⛔ 해당 날짜의 리포트가 없습니다.')),
+        );
+        return;
+      }
+
       setState(() {
         _selectedDay = pickedDate;
         _focusedDay = pickedDate;
@@ -158,6 +177,17 @@ class _CalendarWidgetState extends State<CalendarWidget> {
           focusedDay: _focusedDay ?? DateTime.now(),
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
           onDaySelected: (selectedDay, focusedDay) {
+            final key = DateFormat('yyyy-MM-dd').format(selectedDay);
+            final data = _markerMap[key];
+            final hasReport = data?['has_report'] ?? false;
+
+            if (!hasReport) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('⛔ 해당 날짜의 리포트가 없습니다.')),
+              );
+              return;
+            }
+
             setState(() {
               _selectedDay = selectedDay;
               _focusedDay = selectedDay;
@@ -177,9 +207,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
             defaultBuilder: (context, date, _) {
               final key = DateFormat('yyyy-MM-dd').format(date);
               final data = _markerMap[key];
-
               final marker = data?['marker_type'];
-              final hasReport = data?['has_report'];
+              final hasReport = data?['has_report'] ?? false;
 
               Widget dayText = Text(
                 '${date.day}',
@@ -188,7 +217,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
               List<Widget> children = [dayText];
 
-              if (hasReport != true) {
+              if (!hasReport) {
                 children.add(
                   Opacity(
                     opacity: 0.6,
@@ -207,7 +236,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
               if (marker != null && marker != 'none') {
                 children.add(
                   Opacity(
-                    opacity: 0.4,
+                    opacity: hasReport ? 0.4 : 0.2,
                     child: Image.asset(
                       getImagePathFromMarker(marker),
                       width: 35,

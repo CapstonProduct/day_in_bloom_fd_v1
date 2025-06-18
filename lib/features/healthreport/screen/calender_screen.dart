@@ -24,22 +24,26 @@ class CalendarScreen extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          shadowColor: Colors.transparent,
+                          elevation: 0,
                         ),
-                        shadowColor: Colors.transparent,
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        '날짜를 클릭하여 그날의 건강 리포트를 확인하세요!',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                        child: const Text(
+                          '날짜를 클릭하여 그날의\n건강 리포트를 확인하세요!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),

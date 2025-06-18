@@ -178,7 +178,8 @@ class _ModifyDoctorAdviceScreenState extends State<ModifyDoctorAdviceScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text("환자분의 소중한 건강을 위해 조언을 수정하세요!",
+                  Text("환자분의 소중한 건강을 위해\n조언을 수정하세요!",
+                      textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
                   const SizedBox(height: 10),
                   Text("$name 어르신", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54)),
@@ -186,7 +187,7 @@ class _ModifyDoctorAdviceScreenState extends State<ModifyDoctorAdviceScreen> {
                   const SizedBox(height: 15),
                   TextField(
                     controller: _adviceController,
-                    maxLines: 15,
+                    maxLines: 10,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(borderSide: BorderSide(color: Colors.green)),
                       enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green, width: 2.0)),
