@@ -11,7 +11,6 @@ class ExcelDoctorCodeModal {
     TextEditingController codeController = TextEditingController();
 
     String formatDate(String input) {
-      // 공백 제거, '/'를 '-'로 치환
       return input.replaceAll(' ', '').replaceAll('/', '-');
     }
 
@@ -79,10 +78,8 @@ class ExcelDoctorCodeModal {
                   return;
                 }
 
-                // 다이얼로그 닫기
                 Navigator.of(dialogContext).pop();
 
-                // 날짜 포맷 정리
                 final formattedDate = formatDate(reportDate);
 
                 final uri = Uri.parse(
