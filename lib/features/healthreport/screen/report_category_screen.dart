@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'pdf_download_modal.dart';
-import 'excel_doctor_code_modal.dart';
 
 class ReportCategoryScreen extends StatefulWidget {
   const ReportCategoryScreen({super.key});

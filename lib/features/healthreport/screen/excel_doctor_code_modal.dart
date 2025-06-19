@@ -1,15 +1,26 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ExcelDoctorCodeModal {
   static void show(BuildContext context, String reportDate, String encodedId) {
     TextEditingController codeController = TextEditingController();
 
+    String formatDate(String input) {
+      // 공백 제거, '/'를 '-'로 치환
+      return input.replaceAll(' ', '').replaceAll('/', '-');
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: Colors.white, 
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -37,7 +48,8 @@ class ExcelDoctorCodeModal {
                   ),
                   filled: true,
                   fillColor: Colors.grey[100],
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -45,7 +57,7 @@ class ExcelDoctorCodeModal {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.grey[600],
               ),
@@ -55,32 +67,82 @@ class ExcelDoctorCodeModal {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 String enteredCode = codeController.text.trim();
-                if (_isValidCode(enteredCode)) {
-                  Navigator.of(context).pop();
-                  _downloadExcel();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text(
-                        '잘못된 코드입니다.',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
+                if (enteredCode.isEmpty) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('코드를 입력해 주세요.'),
                       backgroundColor: Colors.redAccent,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                   );
+                  return;
+                }
+
+                // 다이얼로그 닫기
+                Navigator.of(dialogContext).pop();
+
+                // 날짜 포맷 정리
+                final formattedDate = formatDate(reportDate);
+
+                final uri = Uri.parse(
+                        'https://e1tbu7jvyh.execute-api.ap-northeast-2.amazonaws.com/Prod/reports/excel')
+                    .replace(queryParameters: {
+                  'doctor_code': enteredCode,
+                  'encodedId': encodedId,
+                  'report_date': formattedDate,
+                });
+
+                try {
+                  final response = await Dio().getUri(uri);
+                  if (response.statusCode == 200) {
+                    final jsonResponse = response.data;
+                    if (jsonResponse['doctor_valid'] == false) {
+                      // context가 유효할 때 호출
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('유효하지 않은 의사 코드입니다.'),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                      }
+                    } else if (jsonResponse['doctor_valid'] == true) {
+                      final url = jsonResponse['presignedUrl'] as String;
+                      final username = jsonResponse['username'] ?? 'unknown';
+
+                      final filename = '로우데이터_${username}_$formattedDate.xlsx';
+
+                      await _downloadFile(context, url, filename);
+                    }
+                  } else {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('서버 오류: ${response.statusCode}'),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('오류가 발생했습니다: $e'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
                 foregroundColor: Colors.white,
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                textStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -93,11 +155,72 @@ class ExcelDoctorCodeModal {
     );
   }
 
-  static bool _isValidCode(String code) {
-    return code == "DOCTOR123";
-  }
+  static Future<void> _downloadFile(
+      BuildContext context, String url, String filename) async {
+    try {
+      String filePath;
 
-  static void _downloadExcel() {
-    debugPrint("엑셀 다운로드 시작...");
+      if (Platform.isAndroid) {
+        final status = await Permission.manageExternalStorage.request();
+        if (!status.isGranted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('저장소 접근 권한이 필요합니다.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+          return;
+        }
+
+        final downloadDir = Directory('/storage/emulated/0/Download');
+        if (!await downloadDir.exists()) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('다운로드 폴더를 찾을 수 없습니다.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+          return;
+        }
+
+        filePath = '${downloadDir.path}/$filename';
+      } else {
+        final dir = await getApplicationDocumentsDirectory();
+        filePath = '${dir.path}/$filename';
+      }
+
+      final dio = Dio();
+      final downloadResponse = await dio.download(
+        url,
+        filePath,
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      if (downloadResponse.statusCode == 200) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('파일 다운로드가 완료되었습니다:\n$filename')),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('다운로드 실패: 상태코드 ${downloadResponse.statusCode}'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('다운로드 중 오류 발생: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
   }
 }
