@@ -25,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   ];
 
   bool _autoLogin = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -39,6 +40,78 @@ class _LoginScreenState extends State<LoginScreen> {
       if (accessToken != null) {
         context.go('/homeElderlyList');
       }
+    }
+  }
+
+  void _showLoadingModal() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(30),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                      strokeWidth: 3,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  "카카오 로그인을\n진행 중입니다.",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "잠시만 기다려주세요",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // 로딩 모달 숨기기 함수
+  void _hideLoadingModal() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
     }
   }
 
@@ -122,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Checkbox(
                         value: _autoLogin,
-                        onChanged: (value) {
+                        onChanged: _isLoading ? null : (value) {
                           setState(() {
                             _autoLogin = value!;
                           });
@@ -141,27 +214,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 50,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber,
+                        backgroundColor: _isLoading ? Colors.grey : Colors.amber, 
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                       ),
-                     onPressed: () async {
+                      onPressed: _isLoading ? null : () async { 
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        
+                        _showLoadingModal();
+                        
                         try {
-                          // 수정 전
-                          // final result = await KakaoAuthService.loginWithKakao(autoLogin: _autoLogin);
-                          // final alreadyEntered = await KakaoAuthService.isUserInfoEntered();
-                          // if (!mounted) return;
-
-                          // if (!alreadyEntered) {
-                          //   context.go('/login/inputUserInfo');
-                          // } else {
-                          //   context.go('/homeElderlyList');
-                          // }
-
-                          // 수정 후
                           final result = await KakaoAuthService.loginWithKakao(autoLogin: _autoLogin);
                           final userInfoEntered = await KakaoAuthService.checkUserInfoEnteredFromServer();
 
                           debugPrint("userInfoEntered: $userInfoEntered");
+
+                          _hideLoadingModal();
 
                           if (!mounted) return;
 
@@ -171,13 +240,42 @@ class _LoginScreenState extends State<LoginScreen> {
                             context.go('/homeElderlyList');
                           }
                         } catch (e) {
+                          _hideLoadingModal();
                           print("로그인 실패: $e");
+                          
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('로그인에 실패했습니다. 다시 시도해주세요.'),
+                                backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            );
+                          }
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }
                         }
                       },
-                      child: const Text(
-                        "카카오 로그인",
-                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
+                      child: _isLoading 
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            "카카오 로그인",
+                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
                     ),
                   ),
                 ],

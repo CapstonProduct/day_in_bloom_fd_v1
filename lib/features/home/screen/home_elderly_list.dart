@@ -156,50 +156,50 @@ class _HomeElderlyListScreenState extends State<HomeElderlyListScreen> {
                         ),
                       ),
               ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.center,
-                child: ToggleButtons(
-                  borderRadius: BorderRadius.circular(10),
-                  borderWidth: 1.5,
-                  borderColor: Colors.teal,
-                  selectedBorderColor: Colors.teal,
-                  fillColor: Colors.teal.shade100,
-                  selectedColor: Colors.teal.shade900,
-                  color: Colors.teal,
-                  constraints: const BoxConstraints(minHeight: 40, minWidth: 100),
-                  isSelected: isSelected,
-                  onPressed: (index) {
-                    setState(() {
-                      for (int i = 0; i < isSelected.length; i++) {
-                        isSelected[i] = (i == index);
-                      }
-                    });
-                  },
-                  children: const [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Text(
-                        "보호자",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Text(
-                        "의사",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // const SizedBox(height: 16),
+              // Align(
+              //   alignment: Alignment.center,
+              //   child: ToggleButtons(
+              //     borderRadius: BorderRadius.circular(10),
+              //     borderWidth: 1.5,
+              //     borderColor: Colors.teal,
+              //     selectedBorderColor: Colors.teal,
+              //     fillColor: Colors.teal.shade100,
+              //     selectedColor: Colors.teal.shade900,
+              //     color: Colors.teal,
+              //     constraints: const BoxConstraints(minHeight: 40, minWidth: 100),
+              //     isSelected: isSelected,
+              //     onPressed: (index) {
+              //       setState(() {
+              //         for (int i = 0; i < isSelected.length; i++) {
+              //           isSelected[i] = (i == index);
+              //         }
+              //       });
+              //     },
+              //     children: const [
+              //       Padding(
+              //         padding: EdgeInsets.symmetric(horizontal: 10),
+              //         child: Text(
+              //           "보호자",
+              //           style: TextStyle(
+              //             fontWeight: FontWeight.bold,
+              //             color: Colors.teal,
+              //           ),
+              //         ),
+              //       ),
+              //       Padding(
+              //         padding: EdgeInsets.symmetric(horizontal: 10),
+              //         child: Text(
+              //           "의사",
+              //           style: TextStyle(
+              //             fontWeight: FontWeight.bold,
+              //             color: Colors.teal,
+              //           ),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),
